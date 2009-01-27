@@ -1,32 +1,23 @@
 %META:TOPICINFO{author="WikiGuest" date="1155224748" format="1.1" version="1.2"}%
 ---+!! FormQueryPlugin
 
-The FormQueryPlugin provides a query interface to the [[Foswiki:Extensions/DBCacheContrib][TWiki::Contrib::DBCacheContrib]] module, giving a way to present query results as formatted tables.
+The FormQueryPlugin provides a query interface to the [[Foswiki:Extensions/DBCacheContrib][Foswiki::Contrib::DBCacheContrib]] module, giving a way to present query results. It also supports 'result sets' that simplify successive refinements of searches.
 
-When using the plugin each topic is treated as a container for data fields. These fields can be the fields in the form attached to the topic, or can be parsed out of the topic. The database is managed by the [[Foswiki:Extensions/DBCacheContrib][TWiki::Contrib::DBCacheContrib]] module, which must be installed for this plugin to work.
+When using the plugin each topic is treated as a container for data fields. These are the fields in the form attached to the topic. You can also request that tables in the topics be made searchable.
 
 The tutorial section of this topic gives an introduction to formulating and formatting queries using this plugin, and is a good place to start.
-
-%RED%
-Note: This variant of FormQueryPlugin is incompatible with earlier releases by
-   * removing support for features that are not part of the core functionality of this plugin, and
-   * striving towards compatibility with core TWiki functionality and key plugins such as Plugins.SpreadSheetPlugin.
-If the requirements management features of earlier versions of FormQueryPlugin
-are required, do not use this version.
-%ENDCOLOR%
 
 %TOC%
 
 ---++ Features
    * Perform complex queries on the database
+   * Use result sets
    * Extensive conditional formatting support
    * Automatic derivation of new topic names
    * Recognition and special formatting of key data strings
 
----+++ How the database gets built
-The basic database is built using the DBCacheContrib. Refer to the documentation of that module for details of how it works.
-
-As well as the form data loaded by the DBCacheContrib, the FormQueryPlugin adds the ability to extract embedded tables from topics.
+---+++ How to search tables
+As well as the form data attached to a topic, the FormQueryPlugin adds the ability to extract embedded tables from topics.
 
 Embedded tables that follow a specific format (defined using the Edit<nop>TablePlugin) are added to the topic as an array of rows, each of which contains a map keyed on the fields and mapping to the values in the table. This array is added to the topic as a field named the same as the table type. Where there are multiple tables of the same type in a topic, they are concatenated together into a single array. See [[#SettingsAnchor][Settings]] for more information about how to set up tables.
 
@@ -39,6 +30,8 @@ Most of the rest of this documentation describes how to search this database and
 A query has first to be _formed_ using =FORMQUERY=, and then _shown_ using =SHOWQUERY=. You can combine these operations using =DOQUERY=. Queries are output according to a format specification in the parameters to =SHOWQUERY=. You can cache these specifications for re-use by defining them using =TABLEFORMAT=.
 
 ---+++ Queries
+The syntax of queries supported by FormQueryPlugin is very similar to the synatx used in =%SEARCH{type="query"=. However it is subtly different; the FormQueryPlugin predated the core support for query searches by some years.
+
 ---++++ <code>%FORMQUERY</code>
 <code>%FORMQUERY</code> is the basic query mechanism. A <code>%FORMQUERY</code> works either on the whole database or, if the =query= parameter is given, the results of another query.
 | *Parameter* | *Description* |
@@ -51,10 +44,10 @@ A query has first to be _formed_ using =FORMQUERY=, and then _shown_ using =SHOW
 
 For example,
 <pre>
-%<nop>FORMQUERY{name=AQuery search="Owner='Main\.Fred'"}%
-%<nop>FORMQUERY{name=BQuery query=AQuery search="Product='Boiled Egg'"}%
-%<nop>FORMQUERY{name=CQuery query=BQuery search="" extract=Cooking<nop>Times}%
-%<nop>FORMQUERY{name=DQuery query=CQuery search="Time < '4'"}%
+%<nop>FORMQUERY{name="AQuery" search="Owner='Main\.Fred'"}%
+%<nop>FORMQUERY{name="BQuery" query="AQuery" search="Product='Boiled Egg'"}%
+%<nop>FORMQUERY{name="CQuery" query="BQuery" search="" extract="Cooking<nop>Times"}%
+%<nop>FORMQUERY{name="DQuery" query="CQuery" search="Time < '4'"}%
 </pre>
 will search for all topics with a form field =Owner= set to =Main.Fred=, then filter that down to those topics that have =Product= set to =Boiled Egg=. Then it will extract and flatten out the embedded table =Cooking<nop>Times= in each matched topic. By "flatten out" we mean that future queries on =CQuery= must refer to the fields of the =Cooking<nop>Times= table, not the fields of the topic, i.e. =CQuery= will be an array of all the rows in the embedded table. Finally it will filter down to those rows that have the column =Time= &lt; 4 minutes.
 
@@ -110,7 +103,7 @@ In all cases
 | =help= | Optional, if present then a helpful message will be output for undefined fields. So if you see a table entry that is blank and you don;t think it should be, add the =help= parameter and it should give some guidance. |
 | =moan= | Optional, "on" or "off", if set to "off" disables error output |
 
-The =header=, =footer= and =format= parameters are very similar in application to the parameters used in the standard <code>%SEARCH</code> TWiki command. For the uninitiated, the header is used to define the first row of the results table:
+The =header=, =footer= and =format= parameters are very similar in application to the parameters used in the standard <code>%SEARCH</code> Foswiki command. For the uninitiated, the header is used to define the first row of the results table:
 
 <pre>
 header="| <nop>*Topic*<nop> | <nop>*Summary*<nop> |"
@@ -205,7 +198,7 @@ For example,
 <pre>
 %<nop>SHOWQUERY{ query=AFORMQUERY format=ATBLFMT }%
 </pre>
-*Note:* If you render your results in TWiki table format and limit the rows displayed using =limit= (e.g. first 10 from 99 rows), and also use %SYSTEMWEB%.TablePlugin to allow sorting on the headers, then only the 10 displayed rows will be sorted by TablePlugin (and not the full 99 rows in the table).
+*Note:* If you render your results in Foswiki table format and limit the rows displayed using =limit= (e.g. first 10 from 99 rows), and also use %SYSTEMWEB%.TablePlugin to allow sorting on the headers, then only the 10 displayed rows will be sorted by TablePlugin (and not the full 99 rows in the table).
 
 ---+++ <code>%DOQUERY</code>
 Combines a query and showing the results of that query, <code>%DOQUERY</code> accepts all the same parameters as <code>%FORMQUERY</code> and <code>%SHOWQUERY</code> (except =name= and =query=).
@@ -258,7 +251,7 @@ Used to determine the total number of results a query returned.
 The result is a single number representing the number of results the query returned.
 
 ---+++ Tutorial
-See TWiki::Plugins/FormQueryPluginTutorial for a tutorial describing how to use the plugin in real-world applications.
+See Foswiki::Plugins/FormQueryPluginTutorial for a tutorial describing how to use the plugin in real-world applications.
 
 ---++ Formatted query examples
 
@@ -269,12 +262,12 @@ See TWiki::Plugins/FormQueryPluginTutorial for a tutorial describing how to use 
 
 *Write this:*
 
-=%<nop>FORMQUERY{name="q1" search="topic=~'FAQ'" web="TWiki"}%= %BR%
+=%<nop>FORMQUERY{name="q1" search="topic=~'FAQ'" web="Foswiki"}%= %BR%
 =%<nop>SHOWQUERY{query="q1" header="   * *Topic: Summary:*" format="   * [<nop>[$web.$topic]]: $summary(25)"}%=
 
 *To get this:*
 
-%FORMQUERY{name="q1" search="topic=~'FAQ'" web="TWiki"}%
+%FORMQUERY{name="q1" search="topic=~'FAQ'" web="Foswiki"}%
 %SHOWQUERY{query="q1" header="   * *Topic: Summary:*" format="      * [[$web.$topic]]: $summary(25)"}%
 
 
@@ -282,13 +275,13 @@ See TWiki::Plugins/FormQueryPluginTutorial for a tutorial describing how to use 
 
 *Write this:*
 
-=%<nop>FORMQUERY{name="q1" search="text=~'__Back to:__ <nop>FrequentlyAskedQuestions'" web="TWiki"}%= %BR%
-=%<nop>SHOWQUERY{query="q1" header="TWiki FAQs:" format="   * $pattern(.*?FAQ\:[\n\r]*([^\n\r]+).*) [<nop>[$web.$topic][Answer...]]"}%=
+=%<nop>FORMQUERY{name="q1" search="text=~'__Back to:__ <nop>FrequentlyAskedQuestions'" web="Foswiki"}%= %BR%
+=%<nop>SHOWQUERY{query="q1" header="Foswiki FAQs:" format="   * $pattern(.*?FAQ\:[\n\r]*([^\n\r]+).*) [<nop>[$web.$topic][Answer...]]"}%=
 
 *To get this:*
 
-%FORMQUERY{name="q1" search="text=~'__Back to:__ FrequentlyAskedQuestions'" web="TWiki"}%
-%SHOWQUERY{query="q1" header="TWiki FAQs:" format="   * $pattern(.*?FAQ\:[\n\r]*([^\n\r]+).*) [[$web.$topic][Answer...]]"}%
+%FORMQUERY{name="q1" search="text=~'__Back to:__ FrequentlyAskedQuestions'" web="Foswiki"}%
+%SHOWQUERY{query="q1" header="Foswiki FAQs:" format="   * $pattern(.*?FAQ\:[\n\r]*([^\n\r]+).*) [[$web.$topic][Answer...]]"}%
 
 
 ---+++ Nested Search
@@ -298,9 +291,9 @@ Search can be nested. For example, search for some topics, then form a new searc
 For example, let's search for all topics that contain the word "culture" (first search), and let's find out where each topic found is linked from (second search).
 
    * First search:
-      * =%<nop>FORMQUERY{name="q1" search="text=~'culture'" web="TWiki"}% %<nop>SHOWQUERY{query="q1" format="   * $web.$topic is referenced by:$n(list all references)"}%=
+      * =%<nop>FORMQUERY{name="q1" search="text=~'culture'" web="Foswiki"}% %<nop>SHOWQUERY{query="q1" format="   * $web.$topic is referenced by:$n(list all references)"}%=
    * Second search. For each hit we want this search:
-      * =%<nop>DOQUERY{"(topic found in first search)" separator=", " web="TWiki" format="$web.$topic"}%=
+      * =%<nop>DOQUERY{"(topic found in first search)" separator=", " web="Foswiki" format="$web.$topic"}%=
    * Now let's nest the two. We need to escape the second search, e.g. the first search will build a valid second search string. Note that we escape the second search so that it does not get evaluated prematurely by the first search:
       * Use =$percnt= to escape the leading percent of the second search
       * Use =\"= to escape the double quotes
@@ -308,13 +301,13 @@ For example, let's search for all topics that contain the word "culture" (first 
 
 *Write this:*
 
-=%<nop>FORMQUERY{name="q1" search="text=~'culture'" web="TWiki"}%= %BR%
-=%<nop>SHOWQUERY{query="q1" format="   * $web.$topic is referenced by:$n      * $percntDOQUERY{\"$topic\" separator=\", \" web=\"TWiki\" format=\"$dollarweb.$dollartopic\"}$percnt "}%=
+=%<nop>FORMQUERY{name="q1" search="text=~'culture'" web="Foswiki"}%= %BR%
+=%<nop>SHOWQUERY{query="q1" format="   * $web.$topic is referenced by:$n      * $percntDOQUERY{\"$topic\" separator=\", \" web=\"Foswiki\" format=\"$dollarweb.$dollartopic\"}$percnt "}%=
 
 *To get this:*
 
-%FORMQUERY{name="q1" search="text=~'culture'" web="TWiki"}%
-%SHOWQUERY{query="q1" format="   * $web.$topic is referenced by:$n      * $percntDOQUERY{\"$topic\" separator=\", \" web=\"TWiki\" format=\"$dollarweb.$dollartopic\"}$percnt "}%
+%FORMQUERY{name="q1" search="text=~'culture'" web="Foswiki"}%
+%SHOWQUERY{query="q1" format="   * $web.$topic is referenced by:$n      * $percntDOQUERY{\"$topic\" separator=\", \" web=\"Foswiki\" format=\"$dollarweb.$dollartopic\"}$percnt "}%
 
 __Note:__ Nested search can be slow, especially if you nest more then 3 times. Nesting is limited to 16 levels. For each new nesting level you need to "escape the escapes", e.g. write =$dollarpercntDOQUERY= for level three, =$dollardollarpercntDOQUERY= for level four, etc.
 
@@ -322,12 +315,12 @@ __Note:__ Nested search can be slow, especially if you nest more then 3 times. N
 
 *Write this:*
 
-=%<nop>FORMQUERY{name="q1" search="" web="TWiki"}%= %BR%
+=%<nop>FORMQUERY{name="q1" search="" web="Foswiki"}%= %BR%
 =%<nop>SHOWQUERY{query="q1" limit="7" sort="info.date" format="| $web.$topic | $wikiusername | $date |"}%=
 
 *To get this:*
 
-%FORMQUERY{name="q1" search="" web="TWiki"}%
+%FORMQUERY{name="q1" search="" web="Foswiki"}%
 %SHOWQUERY{query="q1" limit="7" sort="info.date" format="| $web.$topic | $wikiusername | $date |"}%
 
 ---+++ Search with conditional output
@@ -343,22 +336,22 @@ This requires the Foswiki:Extensions.SpreadSheetPlugin. The following example sh
 *Write this:*
 
 =%<nop>CALC{$SET(weekold, $TIMEADD($TIME(), -7, day))}%= %BR%
-=%<nop>FORMQUERY{name="q1" search="name='.*'" web="TWiki"}%= %BR%
+=%<nop>FORMQUERY{name="q1" search="name='.*'" web="Foswiki"}%= %BR%
 =%<nop>SHOWQUERY{query="q1" sort="info.date" format="$percntCALC{$dollarIF($dollarTIME($date) &lt; $dollarGET(weekold), <nop>, | $web.$topic | $wikiusername | $date | $rev |)}$percnt" }%=
 
    * The first line sets the =weekold= variable to the serialized date of exactly one week ago
    * The SHOWQUERY has a deferred CALC. The =$percnt= makes sure that the CALC gets executed once for each search hit
    * The CALC compares the date of the topic with the =weekold= date
-   * If topic is older, a =&lt;nop&gt;= is returned, which gets removed at the end of the TWiki rendering process
+   * If topic is older, a =&lt;nop&gt;= is returned, which gets removed at the end of the Foswiki rendering process
    * Otherwise, the search hit is formatted and returned
 
 *To get this:*
 
 %CALC{$SET(weekold, $TIMEADD($TIME(), -7, day))}%
-%FORMQUERY{name="q1" search="name='.*'" web="TWiki"}%
+%FORMQUERY{name="q1" search="name='.*'" web="Foswiki"}%
 %SHOWQUERY{query="q1" sort="info.date" format="$percntCALC{$dollarIF($dollarTIME($date) < $dollarGET(weekold), <nop>, | $web.$topic | $wikiusername | $date | $rev |)}$percnt" }%
 
-_Note: If you don't see any output, then there are no files newer than 7 days. Rows without entries in all but the first field are due to incorrect topics present in the TWiki web (no topic info line, thus we cannot find date, author, rev)._
+_Note: If you don't see any output, then there are no files newer than 7 days. Rows without entries in all but the first field are due to incorrect topics present in the Foswiki web (no topic info line, thus we cannot find date, author, rev)._
 
 ---+++ Embedding search forms to return a formatted result
 
@@ -374,7 +367,7 @@ Find Topics:
 </form>
 Result:
 </verbatim>
-=%<nop>FORMQUERY{name="q1" search="text=~'%URLPARAM{"q"}%'" web="TWiki"}%= %BR%
+=%<nop>FORMQUERY{name="q1" search="text=~'%URLPARAM{"q"}%'" web="Foswiki"}%= %BR%
 =%<nop>SHOWQUERY{query="q1" limit="7" format="   * $web.$topic: %<nop>BR% $summary" }%=
 
 *To get this:*
@@ -385,7 +378,7 @@ Find Topics:
 <input type="submit" value="Search" />
 </form><br>
 Result (first 7):
-%FORMQUERY{name="q1" search="text=~'%URLPARAM{"q"}%'" web="TWiki"}%
+%FORMQUERY{name="q1" search="text=~'%URLPARAM{"q"}%'" web="Foswiki"}%
 %SHOWQUERY{query="q1" limit="7" format="   * $web.$topic: %BR% $summary" }%
 
 ---+++ Generate a table with embedded calculations
@@ -394,19 +387,19 @@ Assume you want to produce a summary of all the large attachments in a topic (wh
 
 *Write this:*
 
-=%<nop>FORMQUERY{name="all" search="" web="TWiki" extract="attachments"}%= %BR%
+=%<nop>FORMQUERY{name="all" search="" web="Foswiki" extract="attachments"}%= %BR%
 =%<nop>FORMQUERY{name="big" query="all" search="size&gt;'10240'"}%= %BR%
 =%<nop>SHOWQUERY{query="big" format="|$_up.web.$_up.name|$name|  $percntCALC{$dollarROUND($dollarEVAL($size / 1024), 1)k}$percnt|$percntCALC{$dollarFORMATTIME($date, $dollarday $dollarmon $dollaryear)}$percnt|"}%=
 
 *To get this:*
 
-%FORMQUERY{name="all" search="" web="TWiki" extract="attachments"}%
+%FORMQUERY{name="all" search="" web="Foswiki" extract="attachments"}%
 %FORMQUERY{name="big" query="all" search="size>'10240'"}%
 %SHOWQUERY{query="big" format="|$_up.web.$_up.name|$name|  $percntCALC{$dollarROUND($dollarEVAL($size / 1024), 1)k}$percnt|$percntCALC{$dollarFORMATTIME($date,  $dollarday $dollarmon $dollaryear)}$percnt|"}%
 
 <!--
 One line description, shown in the %SYSTEMWEB%.TextFormattingRules topic:
-   * Set SHORTDESCRIPTION = Provides query capabilities across a database defined using forms and embedded tables in TWiki topics. 
+   * Set SHORTDESCRIPTION = Provides query capabilities across a database defined using forms and embedded tables in Foswiki topics. 
 -->
 
 #TopicRelations
@@ -465,11 +458,11 @@ In this case, =$TableDefinition.0.Name= is =Cat=, =$TableDefinition.1.Name= is =
 ---
 ---++ Plugin Info
 
-|  Plugin Author: | TWiki:Main/CrawfordCurrie, TWiki:Main/ThomasWeigert |
+|  Plugin Author: | Foswiki:Main/CrawfordCurrie, Foswiki:Main/ThomasWeigert |
 |  Plugin Version: | %$VERSION% |
 |  Change History: | |
-|  21 May 2007 | Bugs:Item3969 - 8bit email fix (TWiki:Main.WillNorris) |
-|  24 Apr 2007 (13527) | Merge !YetAnotherFormQueryPlugin back in. Fixed a lot. Prepared for use with TWiki 4.2. |
+|  21 May 2007 | TWikibug:Item3969 - 8bit email fix (Foswiki:Main.WillNorris) |
+|  24 Apr 2007 (13527) | Merge !YetAnotherFormQueryPlugin back in. Fixed a lot. Prepared for use with Foswiki 4.2. |
 |  04 Sep 2006 | Expand calculations using Foswiki:Extensions.FormQueryPlugin. |
 |  23 Jun 2006 | Ported to Dakar. |
 |  9 Jul 2005 | Added support for tables defined using Foswiki:Extensions/EditTablerowPlugin |
@@ -481,22 +474,22 @@ In this case, =$TableDefinition.0.Name= is =Cat=, =$TableDefinition.1.Name= is =
 | | Removed !%ARITHMETIC% (as one can use the Foswiki:Extensions/SpreadSheetPlugin) |
 | | Removed the color map feature |
 | | Extended !%FQPINFO% to support showing results of queries |
-| | Integrate the Attribute parser from TWiki:Codev/DakarRelease |
+| | Integrate the Attribute parser from Foswiki:Codev/DakarRelease |
 | | Add caseinsensitivity as option |
 | | Handle one line at a time so that query memory can be reused in another query |
 | | Added the special variables supported by %SYSTEMWEB%.FormattedSearch |
-| | Changed some of the option names to be more consistent with %SYSTEMWEB%.TWikiSearch (e.g., =row_count=) |
+| | Changed some of the option names to be more consistent with %SYSTEMWEB%.FoswikiSearch (e.g., =row_count=) |
 | | More flexibility for using tables |
 | | Add a !%DOANDSHOWQUERY% tag |
 | | Support embedding of !%SEARCH% and !%FORMQUERY% in the format option to allow searches and queries to be applied to the result of a query (a poor man's intersection) |
 | | Added option to switch on/off "Undefined" messages for undefined field values |
 | | Expanded fields no longer have spaces around them. This is more correct, but requires care in =format= definitions. |
 | 16 Jul 2004  | Split into sub-components |
-| 02 Apr 2004  | TWiki:Main/SimonHardyFrancis bugfixes incorporated. TWiki:Main/TimSlidel patches incoporated for mod_perl, autocreate, and collapsing same-type tables in a single topic |
+| 02 Apr 2004  | Foswiki:Main/SimonHardyFrancis bugfixes incorporated. Foswiki:Main/TimSlidel patches incoporated for mod_perl, autocreate, and collapsing same-type tables in a single topic |
 | 05 Feb 2004  | Bugfix version |
 | 11 Jul 2003  | Initial version |
-|  TWiki Dependencies: | Foswiki:Extensions.SpreadSheetPlugin |
-|  Dependencies: | <table border=1><tr><th align="left">Name</th><th align="left">Version</th><th align="left">Description</th></tr><tr><td align="left">TWiki::Contrib::DBCacheContrib</td><td align="left">&gt;=1.001</td><td align="left">Required. Download and install from the Foswiki:Extensions/DBCacheContrib code library.</td></tr></tr><tr><td align="left">Time::ParseDate</td><td align="left">Required. Available from [[http://cpan.uwinnipeg.ca/dist/Time-modules][CPAN]].</td></tr><tr><td align="left">Storable</td><td align="left">&gt;=2.07</td><td align="left">2.13 recommended; accelerates cache handling. Available from [[http://cpan.uwinnipeg.ca/dist/Storable][CPAN]]</td></tr><tr><td align="left">TWiki::Plugins::MacrosPlugin</td><td align="left">&gt;=1.000</td><td align="left">Recommended; used for parameterised includes. Download from Foswiki:Extensions/MacrosPlugin repository.</td></tr></table> |
+|  Foswiki Dependencies: | Foswiki:Extensions.SpreadSheetPlugin |
+|  Dependencies: | <table border=1><tr><th align="left">Name</th><th align="left">Version</th><th align="left">Description</th></tr><tr><td align="left">Foswiki::Contrib::DBCacheContrib</td><td align="left">&gt;=1.001</td><td align="left">Required. Download and install from the Foswiki:Extensions/DBCacheContrib code library.</td></tr></tr><tr><td align="left">Time::ParseDate</td><td align="left">Required. Available from [[http://cpan.uwinnipeg.ca/dist/Time-modules][CPAN]].</td></tr><tr><td align="left">Storable</td><td align="left">&gt;=2.07</td><td align="left">2.13 recommended; accelerates cache handling. Available from [[http://cpan.uwinnipeg.ca/dist/Storable][CPAN]]</td></tr><tr><td align="left">Foswiki::Plugins::MacrosPlugin</td><td align="left">&gt;=1.000</td><td align="left">Recommended; used for parameterised includes. Download from Foswiki:Extensions/MacrosPlugin repository.</td></tr></table> |
 |  Perl Version: | 5.0 |
 |  Plugin Home: | http://foswiki.org/Extensions/%TOPIC% |
 |  Feedback: | http://foswiki.org/Extensions/%TOPIC%Dev |
@@ -515,7 +508,7 @@ The module is shipped with a perl build file, which should be used for installat
 
 ---+++ License
 
-As required for the publication of all extensions to TWiki, this
+As required for the publication of all extensions to Foswiki, this
 software is published under the terms of the GNU General Public
 License.
 
@@ -525,5 +518,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details, published at
 http://www.gnu.org/copyleft/gpl.html
 
--- TWiki:Main/ThomasWeigert - 04 Sep 2006
 <!-- Do _not_ attempt to edit this topic; it is auto-generated. Please add comments/questions/remarks to the Dev topic instead. -->

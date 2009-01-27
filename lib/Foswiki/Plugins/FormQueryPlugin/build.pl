@@ -10,18 +10,8 @@ BEGIN {
     unshift @INC, $pc;
   }
 }
+use Foswiki::Contrib::Build;
 
-use TWiki::Contrib::Build;
-
-package FormQueryPluginBuild;
-
-@FormQueryPluginBuild::ISA = ( "TWiki::Contrib::Build" );
-
-sub new {
-  my $class = shift;
-  return bless( $class->SUPER::new( "FormQueryPlugin" ), $class );
-}
-
-$build = new FormQueryPluginBuild();
+$build = new Foswiki::Contrib::Build('FormQueryPlugin');
 
 $build->build($build->{target});

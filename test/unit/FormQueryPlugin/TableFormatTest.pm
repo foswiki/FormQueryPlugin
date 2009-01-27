@@ -1,12 +1,13 @@
 package TableFormatTest;
-
-use TWiki::Plugins::FormQueryPlugin::TableFormat;
-use TWiki::Contrib::DBCacheContrib::Map;
-use TWiki::Contrib::DBCacheContrib::Array;
-use TWiki::Func;
 use base qw(Unit::TestCase);
 
-#$TWiki::regex{mixedAlpha} = "[:alpha:]";
+use Foswiki::Plugins::FormQueryPlugin::TableFormat;
+use Foswiki::Contrib::DBCacheContrib::MemMap;
+use Foswiki::Contrib::DBCacheContrib::MemArray;
+use Foswiki::Func;
+use Foswiki::Attrs;
+
+#$Foswiki::regex{mixedAlpha} = "[:alpha:]";
 
 sub new {
   my $self = shift()->SUPER::new(@_);
@@ -21,14 +22,14 @@ sub set_up {
 sub test_1 {
   my $this = shift;
 
-  my $attrs = new TWiki::Attrs( "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"X\"" );
-  my $tf = new TWiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
+  my $attrs = new Foswiki::Attrs( "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"X\"" );
+  my $tf = new Foswiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
 
-  my $data = new TWiki::Contrib::DBCacheContrib::Array();
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=0 Y=0"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=0 Y=1"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=1 Y=0"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=1 Y=1"));
+  my $data = new Foswiki::Contrib::DBCacheContrib::MemArray();
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=0 Y=0"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=0 Y=1"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=1 Y=0"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=1 Y=1"));
 
   my $res = $tf->formatTable($data);
   $this->assert_not_null($res);
@@ -39,14 +40,14 @@ sub test_1 {
 sub test_1reverse {
   my $this = shift;
 
-  my $attrs = new TWiki::Attrs( "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"-X\"" );
-  my $tf = new TWiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
+  my $attrs = new Foswiki::Attrs( "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"-X\"" );
+  my $tf = new Foswiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
 
-  my $data = new TWiki::Contrib::DBCacheContrib::Array();
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=0 Y=0"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=0 Y=1"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=1 Y=0"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=1 Y=1"));
+  my $data = new Foswiki::Contrib::DBCacheContrib::MemArray();
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=0 Y=0"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=0 Y=1"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=1 Y=0"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=1 Y=1"));
 
   my $res = $tf->formatTable($data);
   $this->assert_not_null($res);
@@ -58,33 +59,33 @@ sub test_1reverse {
 sub test_2 {
   my $this = shift;
 
-  my $attrs = new TWiki::Attrs( "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"Y,X\"" );
-  my $tf = new TWiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
+  my $attrs = new Foswiki::Attrs(
+      "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"Y,X\"" );
+  my $tf = new Foswiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
 
-  my $data = new TWiki::Contrib::DBCacheContrib::Array();
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=0 Y=0"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=0 Y=1"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=1 Y=0"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=1 Y=1"));
-
+  my $data = new Foswiki::Contrib::DBCacheContrib::MemArray();
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=0 Y=0"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=0 Y=1"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=1 Y=0"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=1 Y=1"));
   my $res = $tf->formatTable($data);
   $this->assert_not_null($res);
-  $res =~ s/[\s\n\r]//g;
-  $this->assert_str_equals("|*X*|*Y*||0|0||1|0||0|1||1|1|", $res);
+  $res =~ s/\r//g;
+  $this->assert_str_equals("|*X*|*Y*|\n|0|0|\n|1|0|\n|0|1|\n|1|1|", $res);
 
 }
 
 sub test_2reverse {
   my $this = shift;
 
-  my $attrs = new TWiki::Attrs( "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"-Y,-X\"" );
-  my $tf = new TWiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
+  my $attrs = new Foswiki::Attrs( "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"-Y,-X\"" );
+  my $tf = new Foswiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
 
-  my $data = new TWiki::Contrib::DBCacheContrib::Array();
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=0 Y=0"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=0 Y=1"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=1 Y=0"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=1 Y=1"));
+  my $data = new Foswiki::Contrib::DBCacheContrib::MemArray();
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=0 Y=0"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=0 Y=1"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=1 Y=0"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=1 Y=1"));
 
   my $res = $tf->formatTable($data);
   $this->assert_not_null($res);
@@ -95,14 +96,14 @@ sub test_2reverse {
 sub test_3numeric {
   my $this = shift;
 
-  my $attrs = new TWiki::Attrs( "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"#X\"" );
-  my $tf = new TWiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
+  my $attrs = new Foswiki::Attrs( "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"#X\"" );
+  my $tf = new Foswiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
 
-  my $data = new TWiki::Contrib::DBCacheContrib::Array();
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=3 Y=0"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=20 Y=1"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=110 Y=0"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=005 Y=1"));
+  my $data = new Foswiki::Contrib::DBCacheContrib::MemArray();
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=3 Y=0"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=20 Y=1"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=110 Y=0"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=005 Y=1"));
 
   my $res = $tf->formatTable($data);
   $this->assert_not_null($res);
@@ -113,14 +114,14 @@ sub test_3numeric {
 sub test_4numericreverse {
   my $this = shift;
 
-  my $attrs = new TWiki::Attrs( "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"-#X\"" );
-  my $tf = new TWiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
+  my $attrs = new Foswiki::Attrs( "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"-#X\"" );
+  my $tf = new Foswiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
 
-  my $data = new TWiki::Contrib::DBCacheContrib::Array();
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=3 Y=0"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=20 Y=1"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=110 Y=0"));
-  $data->add(new TWiki::Contrib::DBCacheContrib::Map("X=005 Y=1"));
+  my $data = new Foswiki::Contrib::DBCacheContrib::MemArray();
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=3 Y=0"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=20 Y=1"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=110 Y=0"));
+  $data->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=005 Y=1"));
 
   my $res = $tf->formatTable($data);
   $this->assert_not_null($res);
@@ -132,36 +133,36 @@ sub test_4numericreverse {
 sub dont_test_5 {
   my $this = shift;
 
-  my $attrs = new TWiki::Attrs( "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"Y,X\"" );
-  my $tfi = new TWiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
+  my $attrs = new Foswiki::Attrs( "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"Y,X\"" );
+  my $tfi = new Foswiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
   $tfi->addToCache("FF");
-  $attrs = new TWiki::Attrs( "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"X,Y\"" );
-  my $tfa = new TWiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
+  $attrs = new Foswiki::Attrs( "header=\"|*X*|*Y*|\" format=\"|\$X|\$Y|\" sort=\"X,Y\"" );
+  my $tfa = new Foswiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
   $tfa->addToCache("GG");
-  $attrs = new TWiki::Attrs( "header=\"|*T1*|*T2*|\" format=\"|\$T1[format=FF]|\$T2[format=GG]|\"" );
-  my $tfo = new TWiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
+  $attrs = new Foswiki::Attrs( "header=\"|*T1*|*T2*|\" format=\"|\$T1[format=FF]|\$T2[format=GG]|\"" );
+  my $tfo = new Foswiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
 
-  my $datao = new TWiki::Contrib::DBCacheContrib::Array();
-  my $submap = new TWiki::Contrib::DBCacheContrib::Map();
+  my $datao = new Foswiki::Contrib::DBCacheContrib::MemArray();
+  my $submap = new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>);
   $datao->add($submap);
 
-  my $dataX = new TWiki::Contrib::DBCacheContrib::Array();
-  $dataX->add(new TWiki::Contrib::DBCacheContrib::Map("X=0 Y=0"));
-  $dataX->add(new TWiki::Contrib::DBCacheContrib::Map("X=0 Y=1"));
-  $dataX->add(new TWiki::Contrib::DBCacheContrib::Map("X=1 Y=0"));
-  $dataX->add(new TWiki::Contrib::DBCacheContrib::Map("X=1 Y=1"));
+  my $dataX = new Foswiki::Contrib::DBCacheContrib::MemArray();
+  $dataX->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=0 Y=0"));
+  $dataX->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=0 Y=1"));
+  $dataX->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=1 Y=0"));
+  $dataX->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=1 Y=1"));
   $submap->set( "T1", $dataX );
 
-  my $dataY = new TWiki::Contrib::DBCacheContrib::Array();
-  $dataY->add(new TWiki::Contrib::DBCacheContrib::Map("X=2 Y=2"));
-  $dataY->add(new TWiki::Contrib::DBCacheContrib::Map("X=2 Y=3"));
-  $dataY->add(new TWiki::Contrib::DBCacheContrib::Map("X=3 Y=2"));
-  $dataY->add(new TWiki::Contrib::DBCacheContrib::Map("X=3 Y=3"));
+  my $dataY = new Foswiki::Contrib::DBCacheContrib::MemArray();
+  $dataY->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=2 Y=2"));
+  $dataY->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=2 Y=3"));
+  $dataY->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=3 Y=2"));
+  $dataY->add(new Foswiki::Contrib::DBCacheContrib::MemMap(initial=>"X=3 Y=3"));
   $submap->set( "T2", $dataY );
 
   my $res = $tfo->formatTable($datao);
   $res =~ s/[\s\n\r]//geo;
-TWiki::writeDebug("res=$res");
+Foswiki::writeDebug("res=$res");
   $this->assert_str_equals("|*T1*|*T2*|||*X*|*Y*||0|0||1|0||0|1||1|1|||*X*|*Y*||2|2||2|3||3|2||3|3||", $res);
 
   # Take out the top level table

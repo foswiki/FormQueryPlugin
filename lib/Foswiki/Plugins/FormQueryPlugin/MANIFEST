@@ -1,0 +1,7 @@
+lib/Foswiki/Plugins/FormQueryPlugin.pm  Main plugin script 
+lib/Foswiki/Plugins/FormQueryPlugin/Relation.pm  Topic relation class 
+lib/Foswiki/Plugins/FormQueryPlugin/TableDef.pm  Table format definition class 
+lib/Foswiki/Plugins/FormQueryPlugin/TableFormat.pm  Table formatter 
+lib/Foswiki/Plugins/FormQueryPlugin/TablerowDef.pm Table format definition class 
+lib/Foswiki/Plugins/FormQueryPlugin/WebDB.pm  Subclass of Map for a whole web 
+data/System/FormQueryPlugin.txt  Plugin topic 

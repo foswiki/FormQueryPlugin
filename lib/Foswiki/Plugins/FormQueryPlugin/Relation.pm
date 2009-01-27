@@ -34,7 +34,7 @@ use strict;
 #
 # The method "apply" is used to get from a shild topic to a parent topic
 # name. 
-package TWiki::Plugins::FormQueryPlugin::Relation;
+package Foswiki::Plugins::FormQueryPlugin::Relation;
 
 # PUBLIC create a new relation by parsing the given string
 sub new {

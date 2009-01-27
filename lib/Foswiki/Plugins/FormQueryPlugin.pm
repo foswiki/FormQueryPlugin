@@ -1,15 +1,15 @@
 #
 # Copyright (C) 2004 Crawford Currie, http://c-dot.co.uk
 #
-# TWiki plugin-in module for Form Query Plugin
+# Foswiki plugin-in module for Form Query Plugin
 #
-package TWiki::Plugins::FormQueryPlugin;
+package Foswiki::Plugins::FormQueryPlugin;
 
 use strict;
 
-use TWiki;
-use TWiki::Func;
-use TWiki::Attrs;
+use Foswiki;
+use Foswiki::Func;
+use Foswiki::Attrs;
 use Error qw( :try );
 use Assert;
 
@@ -18,8 +18,8 @@ use vars qw(
             %db $initialised $moan $quid
            );
 
-$VERSION = '$Rev: 13528 $';
-$RELEASE = 'TWiki-4';
+$VERSION = '$Rev$';
+$RELEASE = 'Foswiki-4';
 $quid = 0;
 
 $initialised = 0; # flag whether _lazyInit has been called
@@ -28,43 +28,43 @@ $initialised = 0; # flag whether _lazyInit has been called
 sub initPlugin {
     ( $topic, $web, $user, $installWeb ) = @_;
 
-    TWiki::Func::registerTagHandler(
+    Foswiki::Func::registerTagHandler(
         'FQPDEBUG',
         \&_FQPDEBUG,
         'context-free' );
-    TWiki::Func::registerTagHandler(
+    Foswiki::Func::registerTagHandler(
         'DOANDSHOWQUERY',
         \&_DOQUERY, # Deprecated
         'context-free' );
-    TWiki::Func::registerTagHandler(
+    Foswiki::Func::registerTagHandler(
         'DOQUERY',
         \&_DOQUERY,
         'context-free' );
-    TWiki::Func::registerTagHandler(
+    Foswiki::Func::registerTagHandler(
         'FORMQUERY',
         \&_FORMQUERY,
         'context-free' );
-    TWiki::Func::registerTagHandler(
+    Foswiki::Func::registerTagHandler(
         'SUMFIELD',
         \&_SUMFIELD,
         'context-free' );
-    TWiki::Func::registerTagHandler(
+    Foswiki::Func::registerTagHandler(
         'MATCHCOUNT',
         \&_MATCHCOUNT,
         'context-free' );
-    TWiki::Func::registerTagHandler(
+    Foswiki::Func::registerTagHandler(
         'TABLEFORMAT',
         \&_TABLEFORMAT,
         'context-free' );
-    TWiki::Func::registerTagHandler(
+    Foswiki::Func::registerTagHandler(
         'SHOWQUERY',
         \&_SHOWQUERY,
         'context-free' );
-    TWiki::Func::registerTagHandler(
+    Foswiki::Func::registerTagHandler(
         'QUERYTOCALC',
         \&_QUERYTOCALC,
         'context-free' );
-    TWiki::Func::registerTagHandler(
+    Foswiki::Func::registerTagHandler(
         'SHOWCALC',
         \&_SHOWCALC,
         'context-free' );
@@ -100,7 +100,7 @@ sub _FQPDEBUG {
     try {
         my $name = $attrs->{query};
         if ( $name ) {
-            $result = TWiki::Plugins::FormQueryPlugin::WebDB::getQueryInfo(
+            $result = Foswiki::Plugins::FormQueryPlugin::WebDB::getQueryInfo(
                 $name, $limit );
         } else {
 
@@ -148,7 +148,7 @@ sub _DOQUERY {
                     $casesensitive,
                     1 );
 
-                $result .= TWiki::Plugins::FormQueryPlugin::WebDB::showQuery(
+                $result .= Foswiki::Plugins::FormQueryPlugin::WebDB::showQuery(
                     '__query__'.$quid,
                     $attrs->{format},
                     $attrs,
@@ -179,7 +179,7 @@ sub _FORMQUERY {
     my $result = '';
     try {
         if ( $query ) {
-            $result = TWiki::Plugins::FormQueryPlugin::WebDB::formQueryOnQuery(
+            $result = Foswiki::Plugins::FormQueryPlugin::WebDB::formQueryOnQuery(
                 $attrs->{name},
                 $string,
                 $query,
@@ -217,7 +217,7 @@ sub _TABLEFORMAT {
 
     my $result;
     try {
-        $result = TWiki::Plugins::FormQueryPlugin::WebDB::tableFormat(
+        $result = Foswiki::Plugins::FormQueryPlugin::WebDB::tableFormat(
 						$attrs->{name},
 						$attrs->{format},
 						$attrs );
@@ -234,7 +234,7 @@ sub _SHOWQUERY {
 
     my $result;
     try {
-        $result = TWiki::Plugins::FormQueryPlugin::WebDB::showQuery(
+        $result = Foswiki::Plugins::FormQueryPlugin::WebDB::showQuery(
             $attrs->{query},
             $attrs->{format},
             $attrs,
@@ -252,7 +252,7 @@ sub _QUERYTOCALC {
 
     my $result;
     try {
-        $result = TWiki::Plugins::FormQueryPlugin::WebDB::toTable(
+        $result = Foswiki::Plugins::FormQueryPlugin::WebDB::toTable(
             $attrs->{query},
             $attrs->{format},
             $attrs,
@@ -271,11 +271,11 @@ sub _SHOWCALC {
     my $calcline = $attrs->{"_DEFAULT"};
 
     # Not required but for safety, as we are not in the table...
-    $TWiki::Plugins::SpreadSheetPlugin::cPos = -1;
+    $Foswiki::Plugins::SpreadSheetPlugin::cPos = -1;
 
     my $result;
     try {
-        $result = TWiki::Plugins::SpreadSheetPlugin::Calc::doCalc($calcline);
+        $result = Foswiki::Plugins::SpreadSheetPlugin::Calc::doCalc($calcline);
     } catch Error::Simple with {
         $result = _moan( 'SHOWCALC', $attrs, shift->{-text} );
     };
@@ -289,7 +289,7 @@ sub _SUMFIELD {
 
     my $result;
     try {
-        $result = TWiki::Plugins::FormQueryPlugin::WebDB::sumQuery(
+        $result = Foswiki::Plugins::FormQueryPlugin::WebDB::sumQuery(
             $attrs->{query},
             $attrs->{field} );
     } catch Error::Simple with {
@@ -305,7 +305,7 @@ sub _MATCHCOUNT {
 
     my $result;
     try {
-        $result = TWiki::Plugins::FormQueryPlugin::WebDB::matchCount(
+        $result = Foswiki::Plugins::FormQueryPlugin::WebDB::matchCount(
 					       $attrs->{query} );
     } catch Error::Simple with {
         $result = _moan( 'MATCHCOUNT', $attrs,shift->{-text});
@@ -321,13 +321,13 @@ sub _lazyInit {
     return 1 if ( $initialised );
 
     # FQP_ENABLE must be set globally or in this web!
-    return 0 unless TWiki::Func::getPreferencesFlag(
+    return 0 unless Foswiki::Func::getPreferencesFlag(
         "FORMQUERYPLUGIN_ENABLE" );
 
     # Check for diagostic output
-    $moan = TWiki::Func::getPreferencesValue( "FORMQUERYPLUGIN_MOAN" );
+    $moan = Foswiki::Func::getPreferencesValue( "FORMQUERYPLUGIN_MOAN" );
 
-    require TWiki::Plugins::FormQueryPlugin::WebDB;
+    require Foswiki::Plugins::FormQueryPlugin::WebDB;
     die $@ if $@;
 
     $initialised = 1;
@@ -341,7 +341,7 @@ sub _lazyCreateDB {
 
     return 1 if $db{$webName};
 
-    $db{$webName} = new TWiki::Plugins::FormQueryPlugin::WebDB( $webName );
+    $db{$webName} = new Foswiki::Plugins::FormQueryPlugin::WebDB( $webName );
 
     return 0 unless ref($db{$webName});
 

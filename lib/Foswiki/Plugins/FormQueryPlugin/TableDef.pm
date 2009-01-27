@@ -1,16 +1,19 @@
 #
 # Copyright (C) Motorola 2003 - All rights reserved
 #
+package Foswiki::Plugins::FormQueryPlugin::TableDef;
+
 use strict;
 use integer;
+use Assert;
 
-use TWiki::Attrs;
+use Foswiki::Attrs;
+use Foswiki::Contrib::DBCacheContrib::MemMap;
 
 # A table definition object. This encapsulates the formatting of
 # a "table" object inside a topic - or at least, mostly. The
 # invoked still has to know what a table looks like at the start
 # so it knows when to start loading rows.
-package TWiki::Plugins::FormQueryPlugin::TableDef;
 
 # PUBLIC
 # Generate a new table def by reading topic text and extracting
@@ -20,13 +23,13 @@ sub new {
 
     my $params;
     foreach my $line ( split( /\n/, $text )) {
-      if ( $line =~ m/%EDITTABLE{(.*?)}%/o ) {
-	$params = $1;
-	last;
-      }
+        if ( $line =~ m/%EDITTABLE{(.*?)}%/o ) {
+            $params = $1;
+            last;
+        }
     }
 
-    my $attrs = new TWiki::Attrs( $params );
+    my $attrs = new Foswiki::Attrs( $params );
     my $hdrdef = $attrs->{header};
     if ( !defined( $hdrdef ) || $hdrdef eq 'on' ) {
         return undef;
@@ -47,9 +50,9 @@ sub new {
 # that the columns are ordered the same as in the table
 # definition.
 sub loadRow {
-    my ( $this, $line, $rowmaker ) = @_;
+    my ( $this, $line ) = @_;
 
-    my $row = $rowmaker->new();
+    my $row = new Foswiki::Contrib::DBCacheContrib::MemMap();
     my $field = 0;
     $line =~ s/^\s*\|(.*)\|\s*$/$1/o;
     foreach my $val ( split( /\|/, $line )) {

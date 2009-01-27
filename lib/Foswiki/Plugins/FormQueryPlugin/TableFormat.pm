@@ -1,18 +1,18 @@
 #
 # Copyright (C) Motorola 2003 - All rights reserved
 #
-package TWiki::Plugins::FormQueryPlugin::TableFormat;
+package Foswiki::Plugins::FormQueryPlugin::TableFormat;
 
 use strict;
 
-use TWiki::Contrib::DBCacheContrib::Map;
+use Foswiki::Contrib::DBCacheContrib::MemMap;
 use Assert;
 
 # PRIVATE cache of table formats
 my %cache;
 my $stdClass = 'twikiTable fqpTable';
 my $htmltables = 0;   # Do not expand tables to HTML here
-my $TranslationToken= "\0";	# Null not allowed in charsets used with TWiki
+my $TranslationToken= "\0";	# Null not allowed in charsets used with Foswiki
 
 # PUBLIC
 # A new TableFormat is either generated or may be satisfied from
@@ -30,7 +30,7 @@ sub new {
      if ( $header =~ s/^\|(.*)\|$/$1/ ) {
       if ( $htmltables ) {
 	# expand twiki-format table header. We have to format here rather
-	# than allowing TWiki to do it because we need to colour and
+	# than allowing Foswiki to do it because we need to colour and
 	# align rows.
         $header =
               CGI::start_table( { class => $stdClass } ).
@@ -151,11 +151,9 @@ sub getTextPattern {
 # instructions in {format}
 sub formatTable {
     my ( $this, $entries, $theSeparator, $newLine, $sr, $rc, $topic, $web, $user, $installWeb ) = @_;
-	
     return CGI::span({class=>'twikiAlert'},'Empty table')
       if ( $entries->size() == 0 );
-
-    my $mixedAlpha = $TWiki::regex{mixedAlpha};
+    my $mixedAlpha = $Foswiki::regex{mixedAlpha};
     if( $theSeparator ) {
         $theSeparator =~ s/\$n\(\)/\n/gos;  # expand "$n()" to new line
         $theSeparator =~ s/\$n([^$mixedAlpha]|$)/\n$1/gos;
@@ -179,8 +177,7 @@ sub formatTable {
         }
         @{$entries->{values}} = sort _compare @{$entries->{values}};
     }
-
-    my $session = $TWiki::Plugins::SESSION;
+    my $session = $Foswiki::Plugins::SESSION;
 	
     $sr = 0 if ( !defined( $sr) || $sr < 0 );
     $rc = $entries->size() if ( !defined( $rc ) || $rc < 0 );
@@ -213,15 +210,15 @@ sub formatTable {
                   getTextPattern( $sub->get("text"), $1 )/ges;
                 $row =~ s/\$web/$sub->get("web")/ges;
                 my ($junk, $name, $ut) =
-                  TWiki::Func::checkTopicEditLock(
+                  Foswiki::Func::checkTopicEditLock(
                       $sub->get("web"), $topic, '');
                 $name ||= '';
                 $row =~ s/\$locked/$name/gs;
                 my $info = $sub->get("info");
                 if ( $info ) {
-                    $row =~ s/\$date/&TWiki::Time::formatTime(
+                    $row =~ s/\$date/&Foswiki::Time::formatTime(
                         $info->get("date") )/ges;
-                    $row =~ s/\$isodate/&TWiki::Search::revDate2ISO(
+                    $row =~ s/\$isodate/&Foswiki::Search::revDate2ISO(
                         $info->get("date") )/ges;
                     $row =~ s/\$rev/$info->get("version")/ges;
                     if ($users->can('findUser')) {
@@ -236,10 +233,10 @@ sub formatTable {
                         $row =~ s/\$username/$users->login($user)/ges;
                     }
                 }
-                $row =~ s/\$createdate/TWiki::Search::_getRev1Info( $sub->get("web"), $topic, "date" )/ges;
-                $row =~ s/\$createusername/TWiki::Search::_getRev1Info( $sub->get("web"), $topic, "username" )/ges;
-                $row =~ s/\$createwikiname/TWiki::Search::_getRev1Info( $sub->get("web"), $topic, "wikiname" )/ges;
-                $row =~ s/\$createwikiusername/TWiki::Search::_getRev1Info( $sub->get("web"), $topic, "wikiusername" )/ges;
+                $row =~ s/\$createdate/Foswiki::Search::_getRev1Info( $sub->get("web"), $topic, "date" )/ges;
+                $row =~ s/\$createusername/Foswiki::Search::_getRev1Info( $sub->get("web"), $topic, "username" )/ges;
+                $row =~ s/\$createwikiname/Foswiki::Search::_getRev1Info( $sub->get("web"), $topic, "wikiname" )/ges;
+                $row =~ s/\$createwikiusername/Foswiki::Search::_getRev1Info( $sub->get("web"), $topic, "wikiusername" )/ges;
             }
 
             $row =~ s/\r?\n/$newLine/gos if( $newLine );
@@ -248,7 +245,7 @@ sub formatTable {
             } else {
                 $row =~ s/([^\n])$/$1\n/os;    # add new line at end if needed
             }
-            ## TW Below is almost like TWiki::expandStandardEscapes
+            ## TW Below is almost like Foswiki::expandStandardEscapes
             ## were it not for the $TranslationToken
             $row =~ s/\$n\(\)/\n/gos;          # expand "$n()" to new line
             $row =~ s/\$n([^$mixedAlpha]|$)/\n$1/gos; # expand "$n" to new line
@@ -260,7 +257,6 @@ sub formatTable {
             # expand fields
             $row =~ s/\$([\w\.]+)\[(.*?)\]/_expandTable($this, $1, $2, $sub, $theSeparator, $newLine)/geo;
             $row =~ s/\$(\w+(?:.\w+)*)/_expandField($this, $1, $sub)/geo;
-
             # expand $dollar
             $row =~ s/${TranslationToken}dollar${TranslationToken}/\$/gos;
 
@@ -330,8 +326,9 @@ sub _expandTable {
             return "";
         }
     }
-    my $attrs = new TWiki::Contrib::DBCacheContrib::Map( $fmt );
-    my $format = new TWiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
+    my $attrs = new Foswiki::Contrib::DBCacheContrib::MemMap(
+        initial => $fmt );
+    my $format = new Foswiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
 
     return $format->formatTable( $table, $theSeparator, $newLine );
 }
@@ -354,10 +351,10 @@ sub toTable {
       if ( $entries->size() == 0 );
 
     # Initialize SpreadSheetPlugin
-    use TWiki::Plugins::SpreadSheetPlugin;
-    use TWiki::Plugins::SpreadSheetPlugin::Calc;
-    &TWiki::Plugins::SpreadSheetPlugin::initPlugin($topic, $web, $user, $installWeb);
-    @TWiki::Plugins::SpreadSheetPlugin::Calc::tableMatrix = ();
+    use Foswiki::Plugins::SpreadSheetPlugin;
+    use Foswiki::Plugins::SpreadSheetPlugin::Calc;
+    &Foswiki::Plugins::SpreadSheetPlugin::initPlugin($topic, $web, $user, $installWeb);
+    @Foswiki::Plugins::SpreadSheetPlugin::Calc::tableMatrix = ();
     my $cell = "";
     my @row = ();
 	
@@ -379,8 +376,8 @@ sub toTable {
 	$sr = 0 if ( !defined( $sr) || $sr < 0 );
 	$rc = $entries->size() if ( !defined( $rc ) || $rc < 0 );
     my $cnt = 0;
-    $TWiki::Plugins::SpreadSheetPlugin::Calc::rPos = -1;
-    $TWiki::Plugins::SpreadSheetPlugin::Calc::cPos = -1;
+    $Foswiki::Plugins::SpreadSheetPlugin::Calc::rPos = -1;
+    $Foswiki::Plugins::SpreadSheetPlugin::Calc::cPos = -1;
     foreach my $sub ( $entries->getValues() ) {
         if ( ref($sub) && $cnt >= $sr && $cnt < $sr + $rc) {
             my $line = $this->{format};
@@ -390,8 +387,8 @@ sub toTable {
             # The next seems to wipe out everything if not formatted as table
             $line =~ s/^(\s*\|)(.*)\|\s*$/$2/o;
             @row  = split( /\|/o, $line, -1 );
-            push @TWiki::Plugins::SpreadSheetPlugin::Calc::tableMatrix, [ @row ];
-            $TWiki::Plugins::SpreadSheetPlugin::Calc::rPos++;
+            push @Foswiki::Plugins::SpreadSheetPlugin::Calc::tableMatrix, [ @row ];
+            $Foswiki::Plugins::SpreadSheetPlugin::Calc::rPos++;
         }
         $cnt++;
     }

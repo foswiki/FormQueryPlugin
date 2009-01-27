@@ -4,9 +4,9 @@ use integer;
 
 use lib '../lib';
 
-use TWiki::Net;
-use TWiki::Plugins::FormQueryPlugin::WebDB;
-use TWiki::Plugins::ActionTrackerPlugin::ActionNotify;
+use Foswiki::Net;
+use Foswiki::Plugins::FormQueryPlugin::WebDB;
+use Foswiki::Plugins::ActionTrackerPlugin::ActionNotify;
 
 # Generate a list of notification mails
 
@@ -19,7 +19,7 @@ die "web= not found on command line" unless ( defined( $web ));
 die "query= not found on command line" unless ( defined( $query ));
 
 my ( $topic, $webName, $dummy, $userName, $dataDir) = 
-    &TWiki::initialize( "/$web", "nobody" );
+    &Foswiki::initialize( "/$web", "nobody" );
 $dummy = "";  # to suppress warning
 
 my $db = new FormQueryPlugin::WebDB( $webName );
@@ -29,28 +29,28 @@ $now =~ s/(\w+)\s+(\w+)\s+(\w+)\s+([^\s]+)\s+(\w+).*/$3-$2-$5/o;
 
 $db->_load();
 
-if ( !TWiki::Func::topicExists( $webName, $query )) {
+if ( !Foswiki::Func::topicExists( $webName, $query )) {
   die "Query topic $webName.$query not found\n";
 }
 
-$query = TWiki::Func::readTopicText( $web, $query );
+$query = Foswiki::Func::readTopicText( $web, $query );
 $query =~ s/%META:\w+{.*}%//mo;
 
 # Expand the query lines
-$query = TWiki::Func::expandCommonVariables( $query, $topic, $webName );
+$query = Foswiki::Func::expandCommonVariables( $query, $topic, $webName );
 
 my %mails;
-my $binpath = TWiki::Func::getScriptUrlPath();
-my $binurl = TWiki::Func::getUrlHost() . $binpath;
-my $pubpath = TWiki::Func::getScriptUrlPath();
-my $puburl = TWiki::Func::getUrlHost() . $pubpath;
+my $binpath = Foswiki::Func::getScriptUrlPath();
+my $binurl = Foswiki::Func::getUrlHost() . $binpath;
+my $pubpath = Foswiki::Func::getScriptUrlPath();
+my $puburl = Foswiki::Func::getUrlHost() . $pubpath;
 
 foreach my $line ( split( /\n/, $query )) {
   if ( $line =~ s/([^:]+): (.*)$/$2/o ) {
     my $name = $1;
     $name =~ s/\s+//go;
     $name = ActionTrackerPlugin::Action::_canonicalName( $name );
-    my $mail = TWiki::Func::renderText( $line, $webName );
+    my $mail = Foswiki::Func::renderText( $line, $webName );
     # make hrefs absolute
     $mail =~ s/href=\"$binpath/href=\"$binurl/go;
     $mail =~ s/(href|img)=\"$pubpath/$1=\"$puburl/go;
@@ -123,10 +123,10 @@ $html
   if ( defined ( $debug )) {
     print $mail;
   } else {
-    my $error = TWiki::Net::sendEmail( $mail );
+    my $error = Foswiki::Net::sendEmail( $mail );
     if ( defined( $error )) {
       $error = "ActionTrackerPlugin:ActionNotify: $error";
-      TWiki::Func::writeWarning( $error );
+      Foswiki::Func::writeWarning( $error );
     }
   }
 }

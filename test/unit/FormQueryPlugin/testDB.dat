@@ -220,7 +220,6 @@ text|302|19-Aug-2000|
 |KlausWriessnegger|text|220|06-Sep-2001|
 |TWikiGlossary|text|2443|10-Sep-2001|
 |WebChangesAlert|text|395|12-Sep-2001|
-
 %META:FORM{name="DirForm"}%
 %META:FIELD{name="Level" title="Level" value="2"}%
 
@@ -235,7 +234,6 @@ text|302|19-Aug-2000|
 |WebPreferences|text|3046|09-Sep-2001|
 |WebSearch|text|158|08-Aug-2001|
 |WebStatistics|text|850|08-Aug-2001|
-
 %META:FORM{name="DirForm"}%
 %META:FIELD{name="Level" title="Level" value="2"}%
 %META:FIELD{name="RealName" title="RealName" value="Test"}%
@@ -298,7 +296,6 @@ text|302|19-Aug-2000|
 |oopsmoveerr|tmpl|407|01-Aug-2001|
 |oopsrenameerr|tmpl|411|01-Aug-2001|
 |oopstopicexists|tmpl|379|01-Aug-2001|
-
 %META:FORM{name="DirForm"}%
 %META:FIELD{name="Level" title="Level" value="1"}%
 %META:FIELD{name="RealName" title="RealName" value="templates"}%
@@ -325,7 +322,6 @@ text|302|19-Aug-2000|
 |upload||13782|22-Aug-2001|
 |view||10164|09-Sep-2001|
 |viewfile||2773|14-Sep-2001|
-
 %META:FORM{name="DirForm"}%
 %META:FIELD{name="Level" value="1"}%
 %META:FIELD{name="RealName" title="RealName" value="bin"}%
@@ -347,7 +343,6 @@ text|302|19-Aug-2000|
 %EDITTABLE{include="FileTable"}%
 | *Name* | *Type* | *Size* | *Date* |
 |TWiki|perl|64585|15-Sep-2001|
-
 %META:FORM{name="DirForm"}%
 %META:FIELD{name="Level" title="Level" value="2"}%
 %META:FIELD{name="RealName" title="RealName" value="TWiki"}%

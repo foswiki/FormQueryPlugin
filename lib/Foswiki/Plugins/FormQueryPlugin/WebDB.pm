@@ -1,20 +1,21 @@
 #
 # Copyright (C) Motorola 2003 - All rights reserved
 #
-package  TWiki::Plugins::FormQueryPlugin::WebDB;
-use base 'TWiki::Contrib::DBCacheContrib';
+package  Foswiki::Plugins::FormQueryPlugin::WebDB;
+use base 'Foswiki::Contrib::DBCacheContrib';
 
 use strict;
 
 use Time::ParseDate;
 
-use TWiki::Contrib::DBCacheContrib;
-use TWiki::Contrib::DBCacheContrib::Search;
+use Foswiki::Contrib::DBCacheContrib;
+use Foswiki::Contrib::DBCacheContrib::Search;
+use Foswiki::Contrib::DBCacheContrib::MemArray;
 
-use TWiki::Plugins::FormQueryPlugin::Relation;
-use TWiki::Plugins::FormQueryPlugin::TableFormat;
-use TWiki::Plugins::FormQueryPlugin::TableDef;
-use TWiki::Plugins::FormQueryPlugin::TablerowDef;
+use Foswiki::Plugins::FormQueryPlugin::Relation;
+use Foswiki::Plugins::FormQueryPlugin::TableFormat;
+use Foswiki::Plugins::FormQueryPlugin::TableDef;
+use Foswiki::Plugins::FormQueryPlugin::TablerowDef;
 
 # A Web DB is a hash keyed on topic name
 
@@ -27,7 +28,7 @@ my %webs;     # Map from name to web
 sub new {
     my ( $class, $web ) = @_;
 
-    my $this = bless( $class->SUPER::new($web, "_FormQueryCache"), $class );
+    my $this = $class->SUPER::new($web, "_FormQueryCache");
 
     $this->{_tables} = undef;
 
@@ -49,14 +50,14 @@ sub init {
 
     $this->{_web} = $web;
 
-    my $rtext = TWiki::Func::getPreferencesValue(
+    my $rtext = Foswiki::Func::getPreferencesValue(
         "FORMQUERYPLUGIN_RELATIONS" ) || "";
-    my $tablenames = TWiki::Func::getPreferencesValue(
+    my $tablenames = Foswiki::Func::getPreferencesValue(
         "FORMQUERYPLUGIN_TABLES" ) || "";
 
     foreach my $relation ( split( /;/, $rtext )) {
         push( @relations,
-              new TWiki::Plugins::FormQueryPlugin::Relation( $relation ));
+              new Foswiki::Plugins::FormQueryPlugin::Relation( $relation ));
     }
 
     my @tables;
@@ -67,16 +68,16 @@ sub init {
             $this->{_tables}{all} = 1;
             return;
         }
-        if ( !(TWiki::Func::topicExists( $web, $table ))) {
-            TWiki::Func::writeWarning( "No such table template topic '$table'" );
+        if ( !(Foswiki::Func::topicExists( $web, $table ))) {
+            Foswiki::Func::writeWarning( "No such table template topic '$table'" );
         } else {
-            my $text = TWiki::Func::readTopicText( $web, $table );
-            my $ttype = new TWiki::Plugins::FormQueryPlugin::TableDef( $text );
+            my $text = Foswiki::Func::readTopicText( $web, $table );
+            my $ttype = new Foswiki::Plugins::FormQueryPlugin::TableDef( $text );
             if ( defined( $ttype )) {
                 $this->{_tables}{$table} = $ttype;
                 push(@tables, $table);
             } else {
-                TWiki::Func::writeWarning( "Error in table template topic '$table'" );
+                Foswiki::Func::writeWarning( "Error in table template topic '$table'" );
             }
         }
     }
@@ -84,40 +85,40 @@ sub init {
 
 # Invoked by superclass for each line in a topic.
 sub readTopicLine {
-    my ( $this, $topic, $meta, $line, $fh ) = @_;
+    my ( $this, $topic, $meta, $line, $lines ) = @_;
 
     my $text = $line;
 
     # Handle tables defined through %EDITTABLE{}% tags
-    while ( ($line =~ s/%(EDITTABLE){(.*)}%//o) ||
-              ($line =~ s/%(EDITTABLEROW){(.*)}%//o) ) {
+    while ( ($line =~ s/%(EDITTABLE){(.*)}%//) ||
+              ($line =~ s/%(EDITTABLEROW){(.*)}%//) ) {
         my $type = $1;
-        my $attrs = new TWiki::Attrs($2);
+        my $attrs = new Foswiki::Attrs($2);
         my $tablename = $attrs->{$type eq 'EDITTABLE' ? 'include' : 'template'};
         next unless $tablename;
         my $ttype = $this->{_tables}{$tablename};
         if ( !defined ( $ttype ) ) {
             if ( $this->{_tables}{all} ) {
-                if ( !TWiki::Func::topicExists( $this->{_web}, $tablename )) {
-                    TWiki::Func::writeWarning(
+                if ( !Foswiki::Func::topicExists( $this->{_web}, $tablename )) {
+                    Foswiki::Func::writeWarning(
                         "No such table template topic '$tablename'" );
                     return $text;
                 } else {
-                    my $table = TWiki::Func::readTopicText(
+                    my $table = Foswiki::Func::readTopicText(
                         $this->{_web}, $tablename );
                     if ( $type eq 'EDITTABLE' ) {
                         $ttype =
-                          new TWiki::Plugins::FormQueryPlugin::TableDef(
+                          new Foswiki::Plugins::FormQueryPlugin::TableDef(
                               $table );
                     } else {
                         $ttype =
-                          new TWiki::Plugins::FormQueryPlugin::TablerowDef(
+                          new Foswiki::Plugins::FormQueryPlugin::TablerowDef(
                               $table );
                     }
                     if ( defined( $ttype )) {
                         $this->{_tables}{$tablename} = $ttype;
                     } else {
-                        TWiki::Func::writeWarning(
+                        Foswiki::Func::writeWarning(
                             "Error in table template topic '$table'" );
                         return $text;
                     }
@@ -128,17 +129,13 @@ sub readTopicLine {
         }
         # TimSlidel: collapse multiple instances
         # of the same table type into a single table
-        # my $table = new TWiki::Contrib::DBCacheContrib::Array();
-        # Bug: This treats the row after a table as text, even if it is a META
-        # Currently there is an empty line inserted by save between the META
-        # after text and the text, so everything works as expected. But if that
-        # line where to disappear, we would loose the first line of META
 
         # Read table into temporary structure
         my $lc = 0;
         my $tmptable = '';
         my $aftertable;
-        while ( $line = <$fh> ) {
+        while ( scalar(@$lines) ) {
+            my $line = shift(@$lines);
             if ( $line =~ s/\\\s*$//o ) {
                 $text .= $line;
                 # This row is continued on the next line
@@ -146,30 +143,29 @@ sub readTopicLine {
             } elsif ( $line =~ m/\|\s*$/o ) {
                 $text .= $line;
                 # This line terminates a row
-                $tmptable .= $line;
+                $tmptable .= "$line\n";
                 if ( $lc == 0 ) {
                     # It's the header, ignore it
                 }
                 $lc++;
             } elsif ( $line !~ m/^\s*\|/o ) {
                 # This is not a valid row start, so must be the
-                # end of the table
-                $text .= $line;
+                # end of the table. Put it back.
+                unshift(@$lines, $line);
                 last;
             }
         }
-
         # Apply SpreadsheetPlugin to table
         eval {
-            require TWiki::Plugins::SpreadSheetPlugin;
-            TWiki::Plugins::SpreadSheetPlugin::commonTagsHandler( $tmptable );
+            require Foswiki::Plugins::SpreadSheetPlugin;
+            Foswiki::Plugins::SpreadSheetPlugin::commonTagsHandler( $tmptable );
         };
         # ignore if it fails; may not be installed
 
         # Now read the table into the cache structure
         my $table = $meta->fastget( $tablename );
         if ( !defined( $table )) {
-            $table = new TWiki::Contrib::DBCacheContrib::Array();
+            $table = new Foswiki::Contrib::DBCacheContrib::MemArray();
         }
         $lc = 0;
         my $row = "";
@@ -184,9 +180,7 @@ sub readTopicLine {
                     # It's the header, ignore it
                 } else {
                     # Load the row
-                    my $rowmeta =
-                      $ttype->loadRow( $row,
-                                       "TWiki::Contrib::DBCacheContrib::Map" );
+                    my $rowmeta = $ttype->loadRow($row);
                     # $rowmeta->set( "topic", $topic );
                     $rowmeta->set( "_up", $meta );
                     $table->add( $rowmeta );
@@ -240,21 +234,22 @@ sub remove {
 # the requested relation to it.
 sub _extractRelations {
     my $this = shift;
+    my $cache = $this->cache;
 
     foreach my $relation ( @relations ) {
-        foreach my $topic ( $this->getKeys() ) {
+        foreach my $topic ( $cache->getKeys() ) {
             my $parent = $relation->apply( $topic );
             if ( defined( $parent ) ) {
-                my $parentMeta = $this->fastget( $parent );
+                my $parentMeta = $cache->fastget( $parent );
                 if ( defined( $parentMeta )) {
-                    my $childMeta = $this->fastget( $topic );
+                    my $childMeta = $cache->fastget( $topic );
                     $childMeta->set( $relation->childToParent(), $parentMeta );
                     my $known = $parentMeta->fastget( $relation->parentToChild() );
                     if ( !defined( $known )) {
-                        $known = new TWiki::Contrib::DBCacheContrib::Array();
+                        $known = new Foswiki::Contrib::DBCacheContrib::MemArray();
                         $parentMeta->set( $relation->parentToChild(), $known );
                     }
-                    if ( !$known->contains( $childMeta )) {
+                    if ( $known->find( $childMeta ) < 0) {
                         $known->add( $childMeta );
                     }
                 }
@@ -298,9 +293,9 @@ sub formQueryOnDB {
     }
 
     # Make sure the DB is loaded
-    $this->load();
-
-    return _search ( $this->{_web}, $name, $string, $this,
+    my ( $rc, $rf, $r ) = $this->load();
+    #print STDERR "Cache: $rc, File: $rf, Removed: $r\n";
+    return _search ( $this->{_web}, $name, $string, $this->cache,
                      "ROOT", $extract, $case, $multiple );
 }
 
@@ -312,7 +307,7 @@ sub _search {
     my $search;
 
     eval {
-        $search = new TWiki::Contrib::DBCacheContrib::Search( $string );
+        $search = new Foswiki::Contrib::DBCacheContrib::Search( $string );
     };
 
     if ( $@ || !$search ) {
@@ -329,12 +324,12 @@ sub _search {
     }
 
     delete( $queries{$name} ) unless $multiple;
-
     my $matches = $query->search( $search, $case );
-
     my $realMatches;
-    if ($multiple) { $realMatches = $queries{$name}; }
-    $realMatches = new TWiki::Contrib::DBCacheContrib::Array()
+    if ($multiple) {
+        $realMatches = $queries{$name};
+    }
+    $realMatches = new Foswiki::Contrib::DBCacheContrib::MemArray()
       unless $realMatches;
 
     if ( defined( $extract ) && $matches->size() > 0) {
@@ -342,16 +337,19 @@ sub _search {
         # array of the subfield. If the subfield is an array, flatten out
         # the array.
         foreach my $match ( $matches->getValues() ) {
+            #print STDERR $match->get('topic')." $extract from ".join(' ',$match->getKeys()),"\n";
             my $subfield = $match->get( $extract );
             if ( defined( $subfield )) {
-                if ( $subfield->isa( 'TWiki::Contrib::DBCacheContrib::Array' )
+                if ( $subfield->isa(
+                    'Foswiki::Contrib::DBCacheContrib::Array' )
                        && ($subfield->size() > 0) ) {
                     foreach my $entry ( $subfield->getValues() ) {
                         $realMatches->add( $entry );
                     }
                 } elsif ( $subfield->isa(
-                    'TWiki::Contrib::DBCacheContrib::Array' ) ) {
-                    # Did not match
+                    'Foswiki::Contrib::DBCacheContrib::Array' ) ) {
+                    #print STDERR "WARNING: array $extract is empty\n";
+                    # Empty array
                 } else {
                     $realMatches->add( $subfield );
                 }
@@ -386,7 +384,7 @@ sub tableFormat {
         throw Error::Simple "'format' not defined";
     }
 
-    my $fmt = new TWiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
+    my $fmt = new Foswiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
 
     $fmt->addToCache( $name );
 
@@ -413,7 +411,7 @@ sub showQuery {
     if ( !defined( $format )) {
         throw Error::Simple "'format' not defined";
     }
-    $format = new TWiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
+    $format = new Foswiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
 
     if ( !defined( $format )) {
         throw Error::Simple "Table format not defined";
@@ -508,7 +506,7 @@ sub toTable {
     if ( !defined( $format )) {
         throw Error::Simple "'format' not defined";
     }
-    $format = new TWiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
+    $format = new Foswiki::Plugins::FormQueryPlugin::TableFormat( $attrs );
 
     if ( !defined( $format )) {
         throw Error::Simple "Table format not defined";
