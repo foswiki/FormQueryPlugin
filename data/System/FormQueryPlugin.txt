@@ -447,7 +447,7 @@ In this case, =$TableDefinition.0.Name= is =Cat=, =$TableDefinition.1.Name= is =
 
 ---++ Plugin Installation Instructions
 %$INSTALL_INSTRUCTIONS%
-   * The variable %<nop>FORMQUERYPLUGIN_ENABLE% must be set either globally or in the web where you want to use it. If the plugin is enabled globally (on all webs), this may have an unwelcome performance impact, as the plugin may create a cache of topics in a web where it is not intended to be used. To enable the plugin for selected webs only, put the following line into the !WebPreferences topic of the web you want to enable it on:
+   * The variable %<nop>FORMQUERYPLUGIN_ENABLE% *must* be set either globally or in the web where you want to use it. If the plugin is enabled globally (on all webs), this may have an unwelcome performance impact, as the plugin may create a cache of topics in a web where it is not intended to be used. To enable the plugin for selected webs only, put the following line into the !WebPreferences topic of the web you want to enable it on:
 <pre>
       * <nop>Set FORMQUERYPLUGIN_ENABLE = 1
 </pre>
@@ -458,9 +458,10 @@ In this case, =$TableDefinition.0.Name= is =Cat=, =$TableDefinition.1.Name= is =
 ---
 ---++ Plugin Info
 
-|  Plugin Author: | Foswiki:Main/CrawfordCurrie, Foswiki:Main/ThomasWeigert |
-|  Plugin Version: | %$VERSION% |
+|  Author: | Foswiki:Main/CrawfordCurrie, Foswiki:Main/ThomasWeigert |
+|  Version: | %$VERSION% |
 |  Change History: | |
+|  28 Jan 2009 | Foswikitask:Item452: ported to Foswiki, updated for changes made for Berkeley DB support |
 |  21 May 2007 | TWikibug:Item3969 - 8bit email fix (Foswiki:Main.WillNorris) |
 |  24 Apr 2007 (13527) | Merge !YetAnotherFormQueryPlugin back in. Fixed a lot. Prepared for use with Foswiki 4.2. |
 |  04 Sep 2006 | Expand calculations using Foswiki:Extensions.FormQueryPlugin. |
@@ -500,11 +501,6 @@ In this case, =$TableDefinition.0.Name= is =Cat=, =$TableDefinition.1.Name= is =
 This code is based on an original development of Motorola Inc. and is protected by the following copyrights:
    * Copyright &copy; 2002-2003, 2005 Motorola. All Rights Reserved.
    * Copyright &copy; 2004. Crawford Currie http://www.c-dot.co.uk
-
----+++ Extending or customising
-Extension or customisation is welcome, as long as all extensions are described and code provided back to the author.
-
-The module is shipped with a perl build file, which should be used for installation and testing. Testing is done using Test::Unit, and is invoked using the 'test' build target. Writing tests is a useful way of feeding back bugs as well. I can't encourage you enough to maintain and extend the tests!
 
 ---+++ License
 
