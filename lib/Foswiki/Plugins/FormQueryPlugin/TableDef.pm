@@ -8,7 +8,6 @@ use integer;
 use Assert;
 
 use Foswiki::Attrs;
-use Foswiki::Contrib::DBCacheContrib::MemMap;
 
 # A table definition object. This encapsulates the formatting of
 # a "table" object inside a topic - or at least, mostly. The
@@ -50,9 +49,8 @@ sub new {
 # that the columns are ordered the same as in the table
 # definition.
 sub loadRow {
-    my ( $this, $line ) = @_;
+    my ( $this, $line, $row ) = @_;
 
-    my $row = new Foswiki::Contrib::DBCacheContrib::MemMap();
     my $field = 0;
     $line =~ s/^\s*\|(.*)\|\s*$/$1/o;
     foreach my $val ( split( /\|/, $line )) {
@@ -62,7 +60,6 @@ sub loadRow {
         last unless ( defined( $fld ));
         $row->set( $fld, $val );
     }
-    return $row;
 }
 
 1;

@@ -5,12 +5,12 @@ package  Foswiki::Plugins::FormQueryPlugin::WebDB;
 use base 'Foswiki::Contrib::DBCacheContrib';
 
 use strict;
+use Assert;
 
 use Time::ParseDate;
 
 use Foswiki::Contrib::DBCacheContrib;
 use Foswiki::Contrib::DBCacheContrib::Search;
-use Foswiki::Contrib::DBCacheContrib::MemArray;
 
 use Foswiki::Plugins::FormQueryPlugin::Relation;
 use Foswiki::Plugins::FormQueryPlugin::TableFormat;
@@ -165,7 +165,7 @@ sub readTopicLine {
         # Now read the table into the cache structure
         my $table = $meta->fastget( $tablename );
         if ( !defined( $table )) {
-            $table = new Foswiki::Contrib::DBCacheContrib::MemArray();
+            $table = $this->{archivist}->newArray();
         }
         $lc = 0;
         my $row = "";
@@ -180,7 +180,8 @@ sub readTopicLine {
                     # It's the header, ignore it
                 } else {
                     # Load the row
-                    my $rowmeta = $ttype->loadRow($row);
+                    my $rowmeta = $this->{archivist}->newMap();
+                    $ttype->loadRow($row, $rowmeta);
                     # $rowmeta->set( "topic", $topic );
                     $rowmeta->set( "_up", $meta );
                     $table->add( $rowmeta );
@@ -246,7 +247,7 @@ sub _extractRelations {
                     $childMeta->set( $relation->childToParent(), $parentMeta );
                     my $known = $parentMeta->fastget( $relation->parentToChild() );
                     if ( !defined( $known )) {
-                        $known = new Foswiki::Contrib::DBCacheContrib::MemArray();
+                        $known = $this->{archivist}->newArray();
                         $parentMeta->set( $relation->parentToChild(), $known );
                     }
                     if ( $known->find( $childMeta ) < 0) {
@@ -263,7 +264,7 @@ sub toString {
     my $this = shift;
     my $text = "WebDB for web " . $this->{_web} . "\n";
 
-    $text .= $this->SUPER::toString( @_ );
+    $text .= $this->cache->toString( @_ );
 
     return $text;
 }
@@ -294,7 +295,8 @@ sub formQueryOnDB {
 
     # Make sure the DB is loaded
     my ( $rc, $rf, $r ) = $this->load();
-    #print STDERR "Cache: $rc, File: $rf, Removed: $r\n";
+    ASSERT($this->cache) if DEBUG;
+    print STDERR "Cache: $rc, File: $rf, Removed: $r\n";
     return _search ( $this->{_web}, $name, $string, $this->cache,
                      "ROOT", $extract, $case, $multiple );
 }
@@ -419,7 +421,7 @@ sub showQuery {
 
     my $matches = $queries{$name};
     if ( !defined( $matches ) || $matches->size() == 0 ) {
-        throw Error::Simple "Query '$name' returned no values";
+        throw Error::Simple "Query '$name' is empty";
     }
 
     ## get finished html or twiki format table as string
@@ -447,7 +449,7 @@ sub sumQuery {
 
     my $matches = $queries{$name};
     if ( !defined( $matches ) || $matches->size() == 0 ) {
-        throw Error::Simple "Query '$name' returned no values";
+        throw Error::Simple "Query '$name' has no values";
     }
 
     return $matches->sum( $field );
@@ -459,7 +461,7 @@ sub getQueryInfo {
     if ( defined($name) && ! $name eq "" ) {
         my $matches = $queries{$name};
         if ( !defined( $matches ) || $matches->size() == 0 ) {
-            throw Error::Simple "Query '$name' returned no values";
+            throw Error::Simple "Query '$name' contains no values";
         }
         return $matches->toString($limit);
     }

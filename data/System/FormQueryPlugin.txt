@@ -16,7 +16,7 @@ The tutorial section of this topic gives an introduction to formulating and form
    * Automatic derivation of new topic names
    * Recognition and special formatting of key data strings
 
----+++ How to search tables
+---++ Searching tables
 As well as the form data attached to a topic, the FormQueryPlugin adds the ability to extract embedded tables from topics.
 
 Embedded tables that follow a specific format (defined using the Edit<nop>TablePlugin) are added to the topic as an array of rows, each of which contains a map keyed on the fields and mapping to the values in the table. This array is added to the topic as a field named the same as the table type. Where there are multiple tables of the same type in a topic, they are concatenated together into a single array. See [[#SettingsAnchor][Settings]] for more information about how to set up tables.
@@ -30,10 +30,10 @@ Most of the rest of this documentation describes how to search this database and
 A query has first to be _formed_ using =FORMQUERY=, and then _shown_ using =SHOWQUERY=. You can combine these operations using =DOQUERY=. Queries are output according to a format specification in the parameters to =SHOWQUERY=. You can cache these specifications for re-use by defining them using =TABLEFORMAT=.
 
 ---+++ Queries
-The syntax of queries supported by FormQueryPlugin is very similar to the synatx used in =%SEARCH{type="query"=. However it is subtly different; the FormQueryPlugin predated the core support for query searches by some years.
+The syntax of queries supported by FormQueryPlugin is very similar to the synatx used in =%<nop>SEARCH{type="query"=. However it is subtly different; the FormQueryPlugin predated the core support for query searches by some years.
 
----++++ <code>%FORMQUERY</code>
-<code>%FORMQUERY</code> is the basic query mechanism. A <code>%FORMQUERY</code> works either on the whole database or, if the =query= parameter is given, the results of another query.
+---++++ <code>%<nop>FORMQUERY</code>
+<code>%<nop>FORMQUERY</code> is the basic query mechanism. A <code>%FORMQUERY</code> works either on the whole database or, if the =query= parameter is given, the results of another query.
 | *Parameter* | *Description* |
 | =name= | Required, gives the name of the query result for use in <code>%SHOWQUERY</code> or another <code>%FORMQUERY</code> |
 | =search= | Required, the search to perform (see [[#SearchOperators][Search operators]]). Default parameter; the keyword =search= may be omitted. |
@@ -188,7 +188,7 @@ or
 
 <code>%TABLEFORMAT</code> is silent i.e. it produces no output on the page unless there is an error, in which case a descriptive error message is output. This message can be disabled using the =moan= parameter.
 
----+++ <code>%SHOWQUERY</code>
+---++++ <code>%SHOWQUERY</code>
 Used to show the results of a query, <code>%SHOWQUERY</code> accepts all the same parameters as <code>%TABLEFORMAT</code> (except =name=), and also the following parameters:
 | *Parameter* | *Description* |
 | =query= | Required, gives the name of the query to show |
@@ -200,7 +200,7 @@ For example,
 </pre>
 *Note:* If you render your results in Foswiki table format and limit the rows displayed using =limit= (e.g. first 10 from 99 rows), and also use %SYSTEMWEB%.TablePlugin to allow sorting on the headers, then only the 10 displayed rows will be sorted by TablePlugin (and not the full 99 rows in the table).
 
----+++ <code>%DOQUERY</code>
+---++++ <code>%DOQUERY</code>
 Combines a query and showing the results of that query, <code>%DOQUERY</code> accepts all the same parameters as <code>%FORMQUERY</code> and <code>%SHOWQUERY</code> (except =name= and =query=).
 
 ---+++ Interface to !SpreadSheetPlugin

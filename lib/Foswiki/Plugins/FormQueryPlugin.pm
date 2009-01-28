@@ -76,20 +76,22 @@ sub _moan {
     my( $tag, $attrs, $mess ) = @_;
     my $whinge = $moan || 'on';
     $whinge = $attrs->{moan} if defined $attrs->{moan};
-    if( lc( $whinge ) eq 'on' ) {
+    if( Foswiki::Func::isTrue( $whinge )) {
         return CGI::span({class => 'twikiAlert'},
-                         '%<nop>'.$tag.'{'.$attrs->stringify()."}% :$mess");
+                         '%<nop> '.$tag.'{'.$attrs->stringify()."}% :$mess");
     }
     return '';
 }
 
 sub _original {
-    my( $macro, $params ) = @_;
-    return _moan($macro, $params, "Plugin initialisation failed");
+    my( $macro, $params, $mess ) = @_;
+    $mess = defined $mess ? ": $mess" : '';
+    return _moan($macro, $params, "Plugin initialisation failed$mess");
 }
 
 sub _FQPDEBUG {
-    return _original( 'FQPINFO', $_[1] ) unless ( _lazyInit() );
+    my $im = _lazyInit();
+    return _original( 'FQPDEBUG', $_[1], $im ) if $im;
 
     my($session, $attrs, $topic, $web) = @_;
 
@@ -116,14 +118,15 @@ sub _FQPDEBUG {
         }
     } catch Error::Simple with {
         $result = _moan( 'FQPINFO', $attrs, shift->{-text} );
-        die $result if DEBUG;
+        #die $result if DEBUG;
     };
     return $result;
 }
 
 sub _DOQUERY {
 
-    return _original( 'DOQUERY', $_[1] ) unless ( _lazyInit() );
+    my $im = _lazyInit();
+    return _original( 'DOQUERY', $_[1], $im ) if $im;
 
     my($session, $attrs, $topic, $web) = @_;
 
@@ -166,10 +169,10 @@ sub _DOQUERY {
 }
 
 sub _FORMQUERY {
-    return _original( 'FORMQUERY', $_[1] ) unless ( _lazyInit() );
+    my $im = _lazyInit();
+    return _original( 'FORMQUERY', $_[1], $im ) if $im;
 
     my($session, $attrs, $topic, $web) = @_;
-
     my $query = $attrs->{query};
     my $casesensitive = $attrs->{casesensitive} || "0";
     $casesensitive = 0 if( $casesensitive =~ /^off$/oi );
@@ -192,7 +195,8 @@ sub _FORMQUERY {
             my $result;
             foreach $webName ( @webs ) {
                 if ( _lazyCreateDB($webName) ) {
-                    # This should be done more efficiently, don't copy every time...
+                    # This should be done more efficiently,
+                    # don't copy every time...
                     $result .= $db{$webName}->formQueryOnDB(
                         $attrs->{name},
                         $string,
@@ -211,7 +215,8 @@ sub _FORMQUERY {
 }
 
 sub _TABLEFORMAT {
-    return _original( 'TABLEFORMAT', $_[1] ) unless ( _lazyInit() );
+    my $im = _lazyInit();
+    return _original( 'TABLEFORMAT', $_[1], $im ) if $im;
 
     my($session, $attrs, $topic, $web) = @_;
 
@@ -228,7 +233,8 @@ sub _TABLEFORMAT {
 }
 
 sub _SHOWQUERY {
-    return _original( 'SHOWQUERY', $_[1] ) unless ( _lazyInit() );
+    my $im = _lazyInit();
+    return _original( 'SHOWQUERY', $_[1], $im ) if $im;
 
     my($session, $attrs, $topic, $web) = @_;
 
@@ -246,7 +252,8 @@ sub _SHOWQUERY {
 }
 
 sub _QUERYTOCALC {
-    return _original( 'QUERYTOCALC', $_[1] ) unless ( _lazyInit() );
+    my $im = _lazyInit();
+    return _original( 'QUERYTOCALC', $_[1], $im ) if $im;
 
     my($session, $attrs, $topic, $web) = @_;
 
@@ -264,7 +271,8 @@ sub _QUERYTOCALC {
 }
 
 sub _SHOWCALC {
-    return _original( 'SHOWCALC', $_[1] ) unless ( _lazyInit() );
+    my $im = _lazyInit();
+    return _original( 'SHOWCALC', $_[1], $im ) if $im;
 
     my($session, $attrs, $topic, $web) = @_;
 
@@ -283,7 +291,8 @@ sub _SHOWCALC {
 }
 
 sub _SUMFIELD {
-    return _original( 'SUMFIELD', $_[1] ) unless ( _lazyInit() );
+    my $im = _lazyInit();
+    return _original( 'SUMFIELD', $_[1], $im ) if $im;
 
     my($session, $attrs, $topic, $web) = @_;
 
@@ -299,7 +308,8 @@ sub _SUMFIELD {
 }
 
 sub _MATCHCOUNT {
-    return _original( 'MATCHCOUNT', $_[1] ) unless ( _lazyInit() );
+    my $im = _lazyInit();
+    return _original( 'MATCHCOUNT', $_[1], $im ) if $im;
 
     my($session, $attrs, $topic, $web) = @_;
 
@@ -318,21 +328,21 @@ sub _lazyInit {
     # Problem: %SEARCH% with scope=text changes the current directory, thus 
     # the subsequent loads do not work.
 
-    return 1 if ( $initialised );
+    return undef if ( $initialised );
 
     # FQP_ENABLE must be set globally or in this web!
-    return 0 unless Foswiki::Func::getPreferencesFlag(
-        "FORMQUERYPLUGIN_ENABLE" );
+    return "FORMQUERYPLUGIN_ENABLE not set"
+      unless Foswiki::Func::getPreferencesFlag('FORMQUERYPLUGIN_ENABLE' );
 
     # Check for diagostic output
     $moan = Foswiki::Func::getPreferencesValue( "FORMQUERYPLUGIN_MOAN" );
 
     require Foswiki::Plugins::FormQueryPlugin::WebDB;
-    die $@ if $@;
+    return $@ if $@;
 
     $initialised = 1;
 
-    return 1;
+    return undef;
 
 }
 

@@ -32,6 +32,8 @@ sub set_up {
             foreach my $t ( split(/\<TOPIC\>/,$dbt)) {
                 if ( $t =~ m/\"(.*?)\"/o ) {
                     Foswiki::Func::saveTopicText($this->{test_web}, $1, $t);
+                    # Uncomment to create interactive test data
+                    #Foswiki::Func::saveTopicText("FormQueryPluginTestData", $1, $t);
                 }
             }
             last;
