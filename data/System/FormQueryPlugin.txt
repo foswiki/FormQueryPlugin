@@ -162,6 +162,7 @@ The following special variables can be used in the format string:
 | =$formfield(name, 20, -&lt;br /&gt;)= | Form field value, hyphenated each 20 characters with separator "<tt>-&lt;br /&gt;</tt>" |
 | =$formfield(name, 30, ...)= | Form field value, shortended to 30 characters with "<tt>...</tt>" indication |
 | =$pattern(reg-exp)= | A regular expression pattern to extract some text from the topic text (does not search meta data; use fields instead). %BB% Specify a RegularExpression that covers the whole text (topic or line), which typically starts with =.*=, and must end in =.*= %BB% Put text you want to keep in parenthesis, like =$pattern(.*?(from here.*?to here).*)= %BB% Example: =$pattern(.*?\*.*?Email\:\s*([^\n\r]+).*)= extracts the email address from a bullet of format =* Email: ...= %BB% This example has non-greedy =.*?= patterns to scan for the first occurance of the Email bullet; use greedy =.*= patterns to scan for the last occurance %BB% Limitation: Do not use =.*)= inside the pattern, e.g. =$pattern(.*foo(.*)bar.*)= does not work, but =$pattern(.*foo(.*?)bar.*)= does %BB% Note: Make sure that the integrity of a web page is not compromised; for example, if you include an HTML table make sure to include everything including the table end tag |
+| =$formatTime(&lt;formfield-accessor> [,&lt;format>])= | format the datefield pointed to by the &lt;formfield-accessor> using the given &lt;format>; the format can be in any form supported by =Foswiki::Func::formatTime()= (see [[%SYSTEMWEB%.Macros#DISPLAYTIME_format_formatted_dis][Macros]]). |
 | =$n= or =$n()= | New line |
 | =$nop= or =$nop()= | Is a "no operation". This variable gets removed; useful for nested search |
 |=$quot= |Double quote (="=). Alternatively, write =\"= to escape it. |
@@ -433,7 +434,10 @@ The current value of =FORMQUERYPLUGIN_TABLES= is %FORMQUERYPLUGIN_TABLES%.
 For example, let's say we have a table in a topic called !TableDefinition, 
 like this:
 
+<verbatim>
+%EDITTABLE{header="|*Name*|*Description*|"}%
 |*Name*|*Description*|
+</verbatim>
 
 Now, in another topic, !TableUse, we have
 <verbatim>
@@ -461,6 +465,7 @@ In this case, =$TableDefinition.0.Name= is =Cat=, =$TableDefinition.1.Name= is =
 |  Author: | Foswiki:Main/CrawfordCurrie, Foswiki:Main/ThomasWeigert |
 |  Version: | %$VERSION% |
 |  Change History: | |
+|  7 Apr 2009 | Foswikitask:Item8053: fixed QUERYTOCALC, which was always coming up a row short Foswikitask:Item3537: added =$formatTime= as proposed by Stephane Lenclud. |
 |  28 Jan 2009 | Foswikitask:Item452: ported to Foswiki, updated for changes made for Berkeley DB support |
 |  21 May 2007 | TWikibug:Item3969 - 8bit email fix (Foswiki:Main.WillNorris) |
 |  24 Apr 2007 (13527) | Merge !YetAnotherFormQueryPlugin back in. Fixed a lot. Prepared for use with Foswiki 4.2. |

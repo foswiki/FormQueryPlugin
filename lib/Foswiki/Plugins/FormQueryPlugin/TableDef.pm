@@ -21,24 +21,24 @@ sub new {
     my ( $class, $text ) = @_;
 
     my $params;
-    foreach my $line ( split( /\n/, $text )) {
+    foreach my $line ( split( /\n/, $text ) ) {
         if ( $line =~ m/%EDITTABLE{(.*?)}%/o ) {
             $params = $1;
             last;
         }
     }
 
-    my $attrs = new Foswiki::Attrs( $params );
+    my $attrs  = new Foswiki::Attrs($params);
     my $hdrdef = $attrs->{header};
-    if ( !defined( $hdrdef ) || $hdrdef eq 'on' ) {
+    if ( !defined($hdrdef) || $hdrdef eq 'on' ) {
         return undef;
     }
 
     my $this = bless( {}, $class );
-    foreach my $column ( split( /\|/, $hdrdef )) {
+    foreach my $column ( split( /\|/, $hdrdef ) ) {
         if ( $column =~ m/\S/o ) {
             $column =~ s/\W//go;
-            push( @{$this->{fields}}, $column );
+            push( @{ $this->{fields} }, $column );
         }
     }
     return $this;
@@ -50,14 +50,14 @@ sub new {
 # definition.
 sub loadRow {
     my ( $this, $line, $row ) = @_;
-
+    ASSERT($row) if DEBUG;
     my $field = 0;
     $line =~ s/^\s*\|(.*)\|\s*$/$1/o;
-    foreach my $val ( split( /\|/, $line )) {
+    foreach my $val ( split( /\|/, $line ) ) {
         $val =~ m/^\s*(.*)\s*$/o;
-        $val = $1;;
-        my $fld = $this->{fields}[$field++];
-        last unless ( defined( $fld ));
+        $val = $1;
+        my $fld = $this->{fields}[ $field++ ];
+        last unless ( defined($fld) );
         $row->set( $fld, $val );
     }
 }

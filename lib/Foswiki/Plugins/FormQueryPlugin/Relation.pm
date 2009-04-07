@@ -33,7 +33,7 @@ use strict;
 # "TestItem7576x39,TestItem7576x40".
 #
 # The method "apply" is used to get from a shild topic to a parent topic
-# name. 
+# name.
 package Foswiki::Plugins::FormQueryPlugin::Relation;
 
 # PUBLIC create a new relation by parsing the given string
@@ -44,7 +44,7 @@ sub new {
         my $child = $1;
         $this->{relation} = $2;
         my $parent = $3;
-        $this->{child} = $child;
+        $this->{child}  = $child;
         $this->{parent} = $parent;
         my $n = 1;
         while ( $child =~ s/%(\w)/(\\w+)/o ) {
@@ -75,7 +75,8 @@ sub apply {
     eval $this->{childToParent};
     if ( $parent eq $topic ) {
         return undef;
-    } else {
+    }
+    else {
         return $parent;
     }
 }
@@ -93,37 +94,43 @@ sub nextChild {
     # topic
     my $parent = $this->{parent};
     my @chars;
+
     #print "NextChild for $topic in ", $this->toString(),"\n";
     # Replace map characters in the parent with (\w+) and
     # record the character for each match number ($1, $2 etc )
     while ( $parent =~ s/%(\w)/(\\w+)/o ) {
+
         #print STDERR "Push $1\n";
         push( @chars, $1 );
     }
 
     # use apply to find the parent of the known child
     my $dad = $topic;
+
     #print STDERR "Dad $topic \-\> ";
 
     # match this against the expanded parent
     $dad =~ m/$parent/;
+
     #print STDERR "$dad $1\n";
 
     # $ns are now the field values we want to re-use in the new
     # child. Record these.
     my $n = 1;
     my %map;
-    foreach my $ch ( @chars ) {
+    foreach my $ch (@chars) {
         $map{$ch} = eval "\$$n";
         $n++;
     }
 
     # Now replace the named field values in the child expression
     my $child = $this->{child};
-    foreach my $key ( keys( %map )) {
+    foreach my $key ( keys(%map) ) {
+
         #print STDERR "Map %$key -> $map{$key}\n";
         $child =~ s/%$key/$map{$key}/;
     }
+
     # the remaining % in the child is what we want to increment
     $child =~ s/%\w/\n/o;
 

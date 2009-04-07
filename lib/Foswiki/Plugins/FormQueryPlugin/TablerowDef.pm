@@ -22,23 +22,27 @@ sub new {
 
     my $this = bless( {}, $class );
     my $inBlock = 0;
-    $text =~ s/\\\r?\n//go; # remove trailing '\' and join continuation lines
+    $text =~ s/\\\r?\n//go;    # remove trailing '\' and join continuation lines
 
     # | *Name* | *Type* | *Size* | *Value*  | *Tooltip message* | *Attributes* |
     # Tooltip and attributes are optional
-    foreach( split( /\n/, $text ) ) {
-      if( /^\s*\|.*Name[^|]*\|.*Type[^|]*\|.*Size[^|]*\|/ ) {
-	$inBlock = 1;
-      } else {
-	# Only insist on first field being present FIXME - use oops page instead?
-	if( $inBlock && s/^\s*\|//o ) {
-	  my( $title, $type, $size, $vals, $tooltip, $attributes ) = split( /\|/ );
-	  $title =~ s/\W//go;
-	  push( @{$this->{fields}}, $title );
-	} else {
-	  $inBlock = 0;
-	}
-      }
+    foreach ( split( /\n/, $text ) ) {
+        if (/^\s*\|.*Name[^|]*\|.*Type[^|]*\|.*Size[^|]*\|/) {
+            $inBlock = 1;
+        }
+        else {
+
+       # Only insist on first field being present FIXME - use oops page instead?
+            if ( $inBlock && s/^\s*\|//o ) {
+                my ( $title, $type, $size, $vals, $tooltip, $attributes ) =
+                  split(/\|/);
+                $title =~ s/\W//go;
+                push( @{ $this->{fields} }, $title );
+            }
+            else {
+                $inBlock = 0;
+            }
+        }
     }
 
     return $this;
@@ -51,15 +55,15 @@ sub new {
 sub loadRow {
     my ( $this, $line ) = @_;
 
-    my $row = new Foswiki::Contrib::DBCacheContrib::MemMap();
+    my $row   = new Foswiki::Contrib::DBCacheContrib::MemMap();
     my $field = 0;
     $line =~ s/^\s*\|(.*)\|\s*$/$1/o;
-    foreach my $val ( split( /\|/, $line )) {
-      $val =~ m/^\s*(.*)\s*$/o;
-      $val = $1;;
-      my $fld = $this->{fields}[$field++];
-      last unless ( defined( $fld ));
-      $row->set( $fld, $val );
+    foreach my $val ( split( /\|/, $line ) ) {
+        $val =~ m/^\s*(.*)\s*$/o;
+        $val = $1;
+        my $fld = $this->{fields}[ $field++ ];
+        last unless ( defined($fld) );
+        $row->set( $fld, $val );
     }
     return $row;
 }
