@@ -120,6 +120,9 @@ sub _compare {
 
 sub _breakName {
     my ( $text, $args ) = @_;
+    $text = '' unless defined $text;
+
+    return $text unless $args;
 
     my @params = split( /[\,\s]+/, $args, 2 );
     if (@params) {

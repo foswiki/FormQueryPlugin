@@ -263,12 +263,12 @@ See Foswiki::Plugins/FormQueryPluginTutorial for a tutorial describing how to us
 
 *Write this:*
 
-=%<nop>FORMQUERY{name="q1" search="topic=~'FAQ'" web="Foswiki"}%= %BR%
+=%<nop>FORMQUERY{name="q1" search="topic=~'FAQ'" web="%WEB%"}%= %BR%
 =%<nop>SHOWQUERY{query="q1" header="   * *Topic: Summary:*" format="   * [<nop>[$web.$topic]]: $summary(25)"}%=
 
 *To get this:*
 
-%FORMQUERY{name="q1" search="topic=~'FAQ'" web="Foswiki"}%
+%FORMQUERY{name="q1" search="topic=~'FAQ'" web="%WEB%"}%
 %SHOWQUERY{query="q1" header="   * *Topic: Summary:*" format="      * [[$web.$topic]]: $summary(25)"}%
 
 
@@ -276,13 +276,13 @@ See Foswiki::Plugins/FormQueryPluginTutorial for a tutorial describing how to us
 
 *Write this:*
 
-=%<nop>FORMQUERY{name="q1" search="text=~'__Back to:__ <nop>FrequentlyAskedQuestions'" web="Foswiki"}%= %BR%
-=%<nop>SHOWQUERY{query="q1" header="Foswiki FAQs:" format="   * $pattern(.*?FAQ\:[\n\r]*([^\n\r]+).*) [<nop>[$web.$topic][Answer...]]"}%=
+=%<nop>FORMQUERY{name="q1" search="text=~'__Back to:__ <nop>FrequentlyAskedQuestions'" web="%WEB%"}%= %BR%
+=%<nop>SHOWQUERY{query="q1" header="FAQs:" format="   * $pattern(.*?FAQ\:[\n\r]*([^\n\r]+).*) [<nop>[$web.$topic][Answer...]]"}%=
 
 *To get this:*
 
-%FORMQUERY{name="q1" search="text=~'__Back to:__ FrequentlyAskedQuestions'" web="Foswiki"}%
-%SHOWQUERY{query="q1" header="Foswiki FAQs:" format="   * $pattern(.*?FAQ\:[\n\r]*([^\n\r]+).*) [[$web.$topic][Answer...]]"}%
+%FORMQUERY{name="q1" search="text=~'__Back to:__ FrequentlyAskedQuestions'" web="%WEB%"}%
+%SHOWQUERY{query="q1" header="FAQs:" format="   * $pattern(.*?FAQ\:[\n\r]*([^\n\r]+).*) [[$web.$topic][Answer...]]"}%
 
 
 ---+++ Nested Search
@@ -292,9 +292,9 @@ Search can be nested. For example, search for some topics, then form a new searc
 For example, let's search for all topics that contain the word "culture" (first search), and let's find out where each topic found is linked from (second search).
 
    * First search:
-      * =%<nop>FORMQUERY{name="q1" search="text=~'culture'" web="Foswiki"}% %<nop>SHOWQUERY{query="q1" format="   * $web.$topic is referenced by:$n(list all references)"}%=
+      * =%<nop>FORMQUERY{name="q1" search="text=~'culture'" web="%WEB%"}% %<nop>SHOWQUERY{query="q1" format="   * $web.$topic is referenced by:$n(list all references)"}%=
    * Second search. For each hit we want this search:
-      * =%<nop>DOQUERY{"(topic found in first search)" separator=", " web="Foswiki" format="$web.$topic"}%=
+      * =%<nop>DOQUERY{"(topic found in first search)" separator=", " web="%WEB%" format="$web.$topic"}%=
    * Now let's nest the two. We need to escape the second search, e.g. the first search will build a valid second search string. Note that we escape the second search so that it does not get evaluated prematurely by the first search:
       * Use =$percnt= to escape the leading percent of the second search
       * Use =\"= to escape the double quotes
@@ -302,13 +302,13 @@ For example, let's search for all topics that contain the word "culture" (first 
 
 *Write this:*
 
-=%<nop>FORMQUERY{name="q1" search="text=~'culture'" web="Foswiki"}%= %BR%
-=%<nop>SHOWQUERY{query="q1" format="   * $web.$topic is referenced by:$n      * $percntDOQUERY{\"$topic\" separator=\", \" web=\"Foswiki\" format=\"$dollarweb.$dollartopic\"}$percnt "}%=
+=%<nop>FORMQUERY{name="q1" search="text=~'culture'" web="%WEB%"}%= %BR%
+=%<nop>SHOWQUERY{query="q1" format="   * $web.$topic is referenced by:$n      * $percntDOQUERY{\"$topic\" separator=\", \" web=\"%WEB%\" format=\"$dollarweb.$dollartopic\"}$percnt "}%=
 
 *To get this:*
 
-%FORMQUERY{name="q1" search="text=~'culture'" web="Foswiki"}%
-%SHOWQUERY{query="q1" format="   * $web.$topic is referenced by:$n      * $percntDOQUERY{\"$topic\" separator=\", \" web=\"Foswiki\" format=\"$dollarweb.$dollartopic\"}$percnt "}%
+%FORMQUERY{name="q1" search="text=~'culture'" web="%WEB%"}%
+%SHOWQUERY{query="q1" format="   * $web.$topic is referenced by:$n      * $percntDOQUERY{\"$topic\" separator=\", \" web=\"%WEB%\" format=\"$dollarweb.$dollartopic\"}$percnt "}%
 
 __Note:__ Nested search can be slow, especially if you nest more then 3 times. Nesting is limited to 16 levels. For each new nesting level you need to "escape the escapes", e.g. write =$dollarpercntDOQUERY= for level three, =$dollardollarpercntDOQUERY= for level four, etc.
 
@@ -316,12 +316,12 @@ __Note:__ Nested search can be slow, especially if you nest more then 3 times. N
 
 *Write this:*
 
-=%<nop>FORMQUERY{name="q1" search="" web="Foswiki"}%= %BR%
+=%<nop>FORMQUERY{name="q1" search="" web="%WEB%"}%= %BR%
 =%<nop>SHOWQUERY{query="q1" limit="7" sort="info.date" format="| $web.$topic | $wikiusername | $date |"}%=
 
 *To get this:*
 
-%FORMQUERY{name="q1" search="" web="Foswiki"}%
+%FORMQUERY{name="q1" search="" web="%WEB%"}%
 %SHOWQUERY{query="q1" limit="7" sort="info.date" format="| $web.$topic | $wikiusername | $date |"}%
 
 ---+++ Search with conditional output
@@ -337,7 +337,7 @@ This requires the Foswiki:Extensions.SpreadSheetPlugin. The following example sh
 *Write this:*
 
 =%<nop>CALC{$SET(weekold, $TIMEADD($TIME(), -7, day))}%= %BR%
-=%<nop>FORMQUERY{name="q1" search="name='.*'" web="Foswiki"}%= %BR%
+=%<nop>FORMQUERY{name="q1" search="name='.*'" web="%WEB%"}%= %BR%
 =%<nop>SHOWQUERY{query="q1" sort="info.date" format="$percntCALC{$dollarIF($dollarTIME($date) &lt; $dollarGET(weekold), <nop>, | $web.$topic | $wikiusername | $date | $rev |)}$percnt" }%=
 
    * The first line sets the =weekold= variable to the serialized date of exactly one week ago
@@ -349,7 +349,7 @@ This requires the Foswiki:Extensions.SpreadSheetPlugin. The following example sh
 *To get this:*
 
 %CALC{$SET(weekold, $TIMEADD($TIME(), -7, day))}%
-%FORMQUERY{name="q1" search="name='.*'" web="Foswiki"}%
+%FORMQUERY{name="q1" search="name='.*'" web="%WEB%"}%
 %SHOWQUERY{query="q1" sort="info.date" format="$percntCALC{$dollarIF($dollarTIME($date) < $dollarGET(weekold), <nop>, | $web.$topic | $wikiusername | $date | $rev |)}$percnt" }%
 
 _Note: If you don't see any output, then there are no files newer than 7 days. Rows without entries in all but the first field are due to incorrect topics present in the Foswiki web (no topic info line, thus we cannot find date, author, rev)._
@@ -368,7 +368,7 @@ Find Topics:
 </form>
 Result:
 </verbatim>
-=%<nop>FORMQUERY{name="q1" search="text=~'%URLPARAM{"q"}%'" web="Foswiki"}%= %BR%
+=%<nop>FORMQUERY{name="q1" search="text=~'%URLPARAM{"q"}%'" web="%WEB%"}%= %BR%
 =%<nop>SHOWQUERY{query="q1" limit="7" format="   * $web.$topic: %<nop>BR% $summary" }%=
 
 *To get this:*
@@ -379,7 +379,7 @@ Find Topics:
 <input type="submit" value="Search" />
 </form><br>
 Result (first 7):
-%FORMQUERY{name="q1" search="text=~'%URLPARAM{"q"}%'" web="Foswiki"}%
+%FORMQUERY{name="q1" search="text=~'%URLPARAM{"q"}%'" web="%WEB%"}%
 %SHOWQUERY{query="q1" limit="7" format="   * $web.$topic: %BR% $summary" }%
 
 ---+++ Generate a table with embedded calculations
@@ -388,13 +388,13 @@ Assume you want to produce a summary of all the large attachments in a topic (wh
 
 *Write this:*
 
-=%<nop>FORMQUERY{name="all" search="" web="Foswiki" extract="attachments"}%= %BR%
+=%<nop>FORMQUERY{name="all" search="" web="%WEB%" extract="attachments"}%= %BR%
 =%<nop>FORMQUERY{name="big" query="all" search="size&gt;'10240'"}%= %BR%
 =%<nop>SHOWQUERY{query="big" format="|$_up.web.$_up.name|$name|  $percntCALC{$dollarROUND($dollarEVAL($size / 1024), 1)k}$percnt|$percntCALC{$dollarFORMATTIME($date, $dollarday $dollarmon $dollaryear)}$percnt|"}%=
 
 *To get this:*
 
-%FORMQUERY{name="all" search="" web="Foswiki" extract="attachments"}%
+%FORMQUERY{name="all" search="" web="%WEB%" extract="attachments"}%
 %FORMQUERY{name="big" query="all" search="size>'10240'"}%
 %SHOWQUERY{query="big" format="|$_up.web.$_up.name|$name|  $percntCALC{$dollarROUND($dollarEVAL($size / 1024), 1)k}$percnt|$percntCALC{$dollarFORMATTIME($date,  $dollarday $dollarmon $dollaryear)}$percnt|"}%
 
@@ -453,7 +453,7 @@ In this case, =$TableDefinition.0.Name= is =Cat=, =$TableDefinition.1.Name= is =
 %$INSTALL_INSTRUCTIONS%
    * The variable %<nop>FORMQUERYPLUGIN_ENABLE% *must* be set either globally or in the web where you want to use it. If the plugin is enabled globally (on all webs), this may have an unwelcome performance impact, as the plugin may create a cache of topics in a web where it is not intended to be used. To enable the plugin for selected webs only, put the following line into the !WebPreferences topic of the web you want to enable it on:
 <pre>
-      * <nop>Set FORMQUERYPLUGIN_ENABLE = 1
+   * Set FORMQUERYPLUGIN_ENABLE = 1
 </pre>
    * You can set a global default for the =moan= parameter by setting the =FORMQUERYPLUGIN_MOAN variable in %USERSWEB%.SitePreferences, WebPreferences in individual webs, or in individual topics.
    * FormQueryPlugin must appear in the Plugins evaluation order *before* Foswiki:Extensions/SpreadSheetPlugin. You can ensure this by putting !FormQueryPlugin immediately after Default<nop>Plugin in the {PluginsOrder} list in =configure=.
