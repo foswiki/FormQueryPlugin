@@ -400,7 +400,7 @@ Assume you want to produce a summary of all the large attachments in a topic (wh
 
 <!--
 One line description, shown in the %SYSTEMWEB%.TextFormattingRules topic:
-   * Set SHORTDESCRIPTION = Provides query capabilities across a database defined using forms and embedded tables in Foswiki topics. 
+   * Set SHORTDESCRIPTION = %$SHORTDESCRIPTION% 
 -->
 
 #TopicRelations
@@ -464,6 +464,7 @@ In this case, =$TableDefinition.0.Name= is =Cat=, =$TableDefinition.1.Name= is =
 
 |  Author: | Foswiki:Main/CrawfordCurrie, Foswiki:Main/ThomasWeigert |
 |  Version: | %$VERSION% |
+|  Release: | %$RELEASE% |
 |  Change History: | |
 |  7 Apr 2009 | Foswikitask:Item8053: fixed QUERYTOCALC, which was always coming up a row short Foswikitask:Item3537: added =$formatTime= as proposed by Stephane Lenclud. |
 |  28 Jan 2009 | Foswikitask:Item452: ported to Foswiki, updated for changes made for Berkeley DB support |

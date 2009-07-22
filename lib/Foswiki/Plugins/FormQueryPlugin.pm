@@ -7,19 +7,21 @@ package Foswiki::Plugins::FormQueryPlugin;
 
 use strict;
 
-use Foswiki;
-use Foswiki::Func;
-use Foswiki::Attrs;
+use Foswiki ();
+use Foswiki::Func ();
+use Foswiki::Attrs ();
 use Error qw( :try );
 use Assert;
 
 use vars qw(
-  $web $topic $user $installWeb $VERSION $RELEASE
+  $web $topic $user $installWeb
   %db $initialised $moan $quid
 );
 
-$VERSION = '$Rev$';
-$RELEASE = 'Foswiki-4';
+our $VERSION = '$Rev$';
+our $RELEASE = '22 Jul 2009';
+our $SHORTDESCRIPTION = 'Provides query capabilities across a database defined using forms and embedded tables in Foswiki topics.';
+
 $quid    = 0;
 
 $initialised = 0;     # flag whether _lazyInit has been called
