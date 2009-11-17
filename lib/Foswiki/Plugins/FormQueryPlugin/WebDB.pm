@@ -326,7 +326,7 @@ sub formQueryOnDB {
     }
 
     # Make sure the DB is loaded
-    my ( $rc, $rf, $r ) = $this->load();
+    my ( $rc, $rf, $r ) = $this->load( 0 );
     ASSERT( $this->cache ) if DEBUG;
 
     #print STDERR "Cache: $rc, File: $rf, Removed: $r\n";
@@ -443,7 +443,7 @@ sub tableFormat {
 # start  (optional) Render rows starting from start (1st row == 1)
 # limit (optional) Render a maximum of limit rows
 sub showQuery {
-    my ( $name, $format, $attrs, $topic, $web, $user, $installWeb ) = @_;
+    my ( $name, $format, $attrs, $topic, $web ) = @_;
 
     if ( !defined($name) ) {
         throw Error::Simple "'query' not defined";
@@ -468,7 +468,7 @@ sub showQuery {
     return $format->formatTable(
         $matches,        $attrs->{separator}, $attrs->{newline},
         $attrs->{start}, $attrs->{limit},     $topic,
-        $web,            $user,               $installWeb
+        $web
     );
 }
 
@@ -542,7 +542,7 @@ sub matchCount {
 }
 
 sub toTable {
-    my ( $name, $format, $attrs, $topic, $web, $user, $installWeb ) = @_;
+    my ( $name, $format, $attrs, $topic, $web ) = @_;
 
     if ( !defined($name) ) {
         throw Error::Simple "'query' not defined";
@@ -562,8 +562,8 @@ sub toTable {
         throw Error::Simple "Query '$name' returned no values";
     }
 
-    return $format->toTable( $matches, $attrs->{start}, $attrs->{limit}, $topic,
-        $web, $user, $installWeb );
+    return $format->toTable( $matches, $attrs->{start}, $attrs->{limit},
+                             $topic, $web );
 }
 
 1;

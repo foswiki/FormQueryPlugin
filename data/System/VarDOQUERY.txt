@@ -1,0 +1,6 @@
+%META:TOPICPARENT{name="FormQueryPlugin"}%
+#VarDOQUERY
+---+++ DOQUERY
+Combines a !FormQueryPlugin query and showing the results of that query, <code>%DOQUERY</code> accepts all the same parameters as <code>%FORMQUERY</code> and <code>%SHOWQUERY</code> (except =name= and =query=).
+
+See also: FormQueryPlugin, [[VarSUMFIELD][%<nop>SUMFIELD%]], [[VarFORMQUERY][%<nop>FORMQUERY%]], [[VarQUERYTOCALC][%<nop>QUERYTOCALC%]], [[VarTABLEFORMAT][%<nop>TABLEFORMAT%]], [[VarSHOWCALC][%<nop>SHOWCALC%]], [[VarMATCHCOUNT][%<nop>MATCHCOUNT%]], [[VarSHOWQUERY][%<nop>SHOWQUERY%]]

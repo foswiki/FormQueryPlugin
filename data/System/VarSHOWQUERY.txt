@@ -1,0 +1,15 @@
+%META:TOPICPARENT{name="FormQueryPlugin"}%
+#VarSHOWQUERY
+---+++ SHOWQUERY
+Used to show the results of a !FormQueryPlugin query, <code>%SHOWQUERY</code> accepts all the same parameters as <code>%TABLEFORMAT</code> (except =name=), and also the following parameters:
+| *Parameter* | *Description* |
+| =query= | Required, gives the name of the query to show |
+| =start= | Optional, first row to display |
+| =limit= | Optional, number of rows to display, or =all= |
+For example,
+<pre>
+%<nop>SHOWQUERY{ query=AFORMQUERY format=ATBLFMT }%
+</pre>
+*Note:* If you render your results in Foswiki table format and limit the rows displayed using =limit= (e.g. first 10 from 99 rows), and also use %SYSTEMWEB%.TablePlugin to allow sorting on the headers, then only the 10 displayed rows will be sorted by TablePlugin (and not the full 99 rows in the table).
+
+See also: FormQueryPlugin, [[VarSUMFIELD][%<nop>SUMFIELD%]], [[VarFORMQUERY][%<nop>FORMQUERY%]], [[VarQUERYTOCALC][%<nop>QUERYTOCALC%]], [[VarTABLEFORMAT][%<nop>TABLEFORMAT%]], [[VarSHOWCALC][%<nop>SHOWCALC%]], [[VarMATCHCOUNT][%<nop>MATCHCOUNT%]], [[VarSHOWQUERY][%<nop>SHOWQUERY%]]

@@ -5,3 +5,11 @@ lib/Foswiki/Plugins/FormQueryPlugin/TableFormat.pm  Table formatter
 lib/Foswiki/Plugins/FormQueryPlugin/TablerowDef.pm Table format definition class 
 lib/Foswiki/Plugins/FormQueryPlugin/WebDB.pm  Subclass of Map for a whole web 
 data/System/FormQueryPlugin.txt  Plugin topic 
+data/System/VarDOQUERY.txt
+data/System/VarSUMFIELD.txt
+data/System/VarFORMQUERY.txt
+data/System/VarQUERYTOCALC.txt
+data/System/VarTABLEFORMAT.txt
+data/System/VarSHOWCALC.txt
+data/System/VarMATCHCOUNT.txt
+data/System/VarSHOWQUERY.txt

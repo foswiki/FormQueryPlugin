@@ -165,7 +165,7 @@ sub getTextPattern {
 sub formatTable {
     my (
         $this, $entries, $theSeparator, $newLine, $sr,
-        $rc,   $topic,   $web,          $user,    $installWeb
+        $rc,   $topic,   $web
     ) = @_;
     return CGI::span( { class => 'twikiAlert' }, 'Empty table' )
       if ( $entries->size() == 0 );
@@ -390,16 +390,15 @@ sub toTable {
     # This does not expand any calculations when constructing the table
     # (i.e., %CALC% embeded in the table itself)
 
-    my ( $this, $entries, $sr, $rc, $topic, $web, $user, $installWeb ) = @_;
+    my ( $this, $entries, $sr, $rc, $topic, $web ) = @_;
 
     return CGI::span( { class => 'twikiAlert' }, 'Empty table' )
       if ( $entries->size() == 0 );
 
     # Initialize SpreadSheetPlugin
-    use Foswiki::Plugins::SpreadSheetPlugin;
-    use Foswiki::Plugins::SpreadSheetPlugin::Calc;
-    &Foswiki::Plugins::SpreadSheetPlugin::initPlugin( $topic, $web, $user,
-        $installWeb );
+    use Foswiki::Plugins::SpreadSheetPlugin ();
+    use Foswiki::Plugins::SpreadSheetPlugin::Calc ();
+    Foswiki::Plugins::SpreadSheetPlugin::initPlugin( $topic, $web );
     @Foswiki::Plugins::SpreadSheetPlugin::Calc::tableMatrix = ();
     my $cell = "";
     my @row  = ();

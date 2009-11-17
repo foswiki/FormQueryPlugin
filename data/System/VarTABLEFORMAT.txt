@@ -1,0 +1,101 @@
+%META:TOPICPARENT{name="FormQueryPlugin"}%
+#VarTABLEFORMAT
+---+++ TABLEFORMAT
+<code>%TABLEFORMAT</code> provides a template for the display of values extracted from a !FormQueryPlugin query (like the old Fortran 'format' statement).
+| *Parameter* | *Description* |
+| =name= | Required, gives the name of the format for use in <code>%SHOWQUERY</code> or another <code>%FORMQUERY</code> |
+| =format= | Required, gives the format of the body rows (or the format to subclass) |
+| =header= | Optional, gives the format of the header row |
+| =separator= | Optional, separate rows with this (default newline) |
+| =footer= | Optional, gives the string to use to terminate the table |
+| =sort= | Optional, defines the [[#SortOrder][sort order]] |
+| =help= | Optional, if present then a helpful message will be output for undefined fields. So if you see a table entry that is blank and you don;t think it should be, add the =help= parameter and it should give some guidance. |
+| =moan= | Optional, "on" or "off", if set to "off" disables error output |
+
+The =header=, =footer= and =format= parameters are very similar in application to the parameters used in the standard <code>%SEARCH</code> Foswiki command. For the uninitiated, the header is used to define the first row of the results table:
+
+<pre>
+header="| <nop>*Topic*<nop> | <nop>*Summary*<nop> |"
+header="&lt;table>&lt;tr>&lt;th>Topic&lt;/th>&lt;th>Summary&lt;/th>&lt;/tr> |"
+footer="&lt;/table>"
+</pre>
+
+The =format= parameter is overloaded so it can also be used to refer to a table format previously defined using <code>%TABLEFORMAT</code>. This allows you to derive new formats (e.g. with different [[#SortOrder][sort orders]]) For example,
+<pre>
+%<nop>TABLEFORMAT{ name=TBLFMT format="|$topic|" sort="Owner,Priority"}%
+%<nop>TABLEFORMAT{ name=SUBFMT format=TBLFMT sort="Priority,Owner" }%
+</pre>
+Any of the =header=, =footer= or =sort= parameters in the referenced table format can be overridden by giving new values in the <code>%SHOWQUERY</code>.
+
+The footer is usually only used for tables generated directly in HTML, in which case it is usually set to =footer="&lt;/table>"=
+
+<pre>
+footer="&lt;/table>"
+</pre>
+
+The format is used to define the rows in the body of the table:
+
+=format="| $topic | $Summary |"=
+
+Any fields in the form in the topic can be output by putting a $ sign before the name of the field. The two special fields =$topic= and =$form= are available for outputting the name of the topic and the type of the form. You can also refer to fields in related topics using the syntax <code>$field.field</code> where $field is the name of the relation and =field= is a field in the related topic; for example, <code>format="|$Child_of.topic|"</code>.
+
+The following special variables can be used in the format string:
+
+|*Name:*|*Expands To:*|
+|=$web= |Name of the web |
+|=$topic= |Topic name |
+| =$topic(20)= | Topic name, "<tt>- </tt>" hyphenated each 20 characters |
+| =$topic(30, -&lt;br /&gt;)= | Topic name, hyphenated each 30 characters with separator "<tt>-&lt;br /&gt;</tt>" |
+| =$topic(40, ...)= | Topic name, shortended to 40 characters with "<tt>...</tt>" indication |
+| =$parent= | Name of parent topic; empty if not set |
+| =$parent(20)= | Name of parent topic, same hyphenation/shortening like =$topic()= |
+| =$text= | Formatted topic text. |
+| =$locked= | LOCKED flag (if any) |
+| =$date= | Time stamp of last topic update, e.g. =%GMTIME{"$day $mon $year - $hour:$min"}%= |
+| =$isodate= | Time stamp of last topic update, e.g. =%GMTIME{"$year-$mo-$dayT$hour:$minZ"}%= |
+| =$rev= | Number of last topic revision, e.g. =1.4= |
+| =$username= | Login name of last topic update, e.g. =jsmith= |
+| =$wikiname= | Wiki user name of last topic update, e.g. =<nop>JohnSmith= |
+| =$wikiusername= | Wiki user name of last topic update, like =%MAINWEB%.<nop>JohnSmith= |
+| =$createdate= | Time stamp of topic revision 1.1 |
+| =$createusername= | Login name of topic revision 1.1, e.g. =jsmith= |
+| =$createwikiname= | Wiki user name of topic revision 1.1, e.g. =<nop>JohnSmith= |
+| =$createwikiusername= | Wiki user name of topic revision 1.1, e.g. =%MAINWEB%.<nop>JohnSmith= |
+| =$summary= | Topic summary, with 162 characters |
+| =$summary(50)= | Topic summary, with 50 characters |
+| =$summary(showvarnames)= | Topic summary, with =%<nop>ALLTWIKI{...}%= variables shown as =ALLTWIKI{...}= |
+| =$summary(noheader)= | Topic summary, with leading =---+ headers= removed%BR% __Note:__ The tokens can be combined into a comma separated list like =$summary(100, showvarnames, noheader)= |
+| =$formname= | The name of the form attached to the topic; empty if none |
+| =$formfield(name)= | The field value of a form field; for example, =$formfield(<nop>TopicClassification)= would get expanded to =PublicFAQ=. This applies only to topics that have a [[DataForms][DataForm]]. An alternative to using the name of the field directly. |
+| =$formfield(name, 10)= | Form field value, "<tt>- </tt>" hyphenated each 10 characters |
+| =$formfield(name, 20, -&lt;br /&gt;)= | Form field value, hyphenated each 20 characters with separator "<tt>-&lt;br /&gt;</tt>" |
+| =$formfield(name, 30, ...)= | Form field value, shortended to 30 characters with "<tt>...</tt>" indication |
+| =$pattern(reg-exp)= | A regular expression pattern to extract some text from the topic text (does not search meta data; use fields instead). %BB% Specify a RegularExpression that covers the whole text (topic or line), which typically starts with =.*=, and must end in =.*= %BB% Put text you want to keep in parenthesis, like =$pattern(.*?(from here.*?to here).*)= %BB% Example: =$pattern(.*?\*.*?Email\:\s*([^\n\r]+).*)= extracts the email address from a bullet of format =* Email: ...= %BB% This example has non-greedy =.*?= patterns to scan for the first occurance of the Email bullet; use greedy =.*= patterns to scan for the last occurance %BB% Limitation: Do not use =.*)= inside the pattern, e.g. =$pattern(.*foo(.*)bar.*)= does not work, but =$pattern(.*foo(.*?)bar.*)= does %BB% Note: Make sure that the integrity of a web page is not compromised; for example, if you include an HTML table make sure to include everything including the table end tag |
+| =$formatTime(&lt;formfield-accessor> [,&lt;format>])= | format the datefield pointed to by the &lt;formfield-accessor> using the given &lt;format>; the format can be in any form supported by =Foswiki::Func::formatTime()= (see [[%SYSTEMWEB%.Macros#DISPLAYTIME_format_formatted_dis][Macros]]). |
+| =$n= or =$n()= | New line |
+| =$nop= or =$nop()= | Is a "no operation". This variable gets removed; useful for nested search |
+|=$quot= |Double quote (="=). Alternatively, write =\"= to escape it. |
+|=$percnt= |Percent sign (=%=) |
+|=$dollar= |Dollar sign (=$=) |
+
+#SummingFields
+It is also possible to expand the contents of tables embedded in the topic, in two ways:
+   * using the syntax <code>$field[format=FORMAT]</code> where =$field= is the table type, which is named the same as the table topic, and =FORMAT= is the name of a format previously defined using <code>%TABLEFORMAT</code> and suitable for expanding the sub-table.
+   * using the syntax <code>$field.subfield</code> where =subfield= is a numeric field in the contents of the embedded table (i.e. it contains a number). In this case the result will be the sum of all =subfield= values over all the rows in the table.
+
+#SortOrder
+=sort= is used to define the sort order, and is a list of field names (without $'s) separated by commas. You can reverse the sort order for a column by prepending '-' to the field name. For example,
+
+=sort="Owner,-Priority"=
+
+The default sort method is string comparison. If the field data is numeric, then you can put a '#' in front of the field name to force the sort to be numeric. For example,
+
+=sort="Owner,#Priority"=
+
+or
+
+=sort="Owner,-#Priority"=
+
+<code>%TABLEFORMAT</code> is silent i.e. it produces no output on the page unless there is an error, in which case a descriptive error message is output. This message can be disabled using the =moan= parameter.
+
+See also: FormQueryPlugin, [[VarSUMFIELD][%<nop>SUMFIELD%]], [[VarFORMQUERY][%<nop>FORMQUERY%]], [[VarQUERYTOCALC][%<nop>QUERYTOCALC%]], [[VarTABLEFORMAT][%<nop>TABLEFORMAT%]], [[VarSHOWCALC][%<nop>SHOWCALC%]], [[VarMATCHCOUNT][%<nop>MATCHCOUNT%]], [[VarSHOWQUERY][%<nop>SHOWQUERY%]]

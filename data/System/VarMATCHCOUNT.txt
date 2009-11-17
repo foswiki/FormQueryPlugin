@@ -1,0 +1,9 @@
+%META:TOPICPARENT{name="FormQueryPlugin"}%
+#VarMATCHCOUNT
+---+++ MATCHCOUNT
+Used to determine the total number of results a !FormQueryPlugin query returned.
+| *Parameter* | *Description* |
+| =query= | Required, name of the query to sum over |
+The result is a single number representing the number of results the query returned.
+
+See also: FormQueryPlugin, [[VarSUMFIELD][%<nop>SUMFIELD%]], [[VarFORMQUERY][%<nop>FORMQUERY%]], [[VarQUERYTOCALC][%<nop>QUERYTOCALC%]], [[VarTABLEFORMAT][%<nop>TABLEFORMAT%]], [[VarSHOWCALC][%<nop>SHOWCALC%]], [[VarMATCHCOUNT][%<nop>MATCHCOUNT%]], [[VarSHOWQUERY][%<nop>SHOWQUERY%]]

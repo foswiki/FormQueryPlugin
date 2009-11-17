@@ -13,22 +13,17 @@ use Foswiki::Attrs ();
 use Error qw( :try );
 use Assert;
 
-use vars qw(
-  $web $topic $user $installWeb
-  %db $initialised $moan $quid
-);
-
 our $VERSION = '$Rev$';
-our $RELEASE = '22 Jul 2009';
+our $RELEASE = '17 Nov 2009';
 our $SHORTDESCRIPTION = 'Provides query capabilities across a database defined using forms and embedded tables in Foswiki topics.';
 
-$quid    = 0;
-
-$initialised = 0;     # flag whether _lazyInit has been called
-%db          = ();    # hash of loaded DBs, keyed on web name
+our $quid    = 0;         # Unique query id
+our $initialised = 0;     # flag whether _lazyInit has been called
+our %db          = ();    # hash of loaded DBs, keyed on web name
+our $moan = 0;            # Preference value
 
 sub initPlugin {
-    ( $topic, $web, $user, $installWeb ) = @_;
+    my ( $topic, $web, $user, $installWeb ) = @_;
 
     Foswiki::Func::registerTagHandler( 'FQPDEBUG', \&_FQPDEBUG,
         'context-free' );
@@ -139,8 +134,7 @@ sub _DOQUERY {
 
                 $result .= Foswiki::Plugins::FormQueryPlugin::WebDB::showQuery(
                     '__query__' . $quid,
-                    $attrs->{format}, $attrs, $topic, $web, $user,
-                    $installWeb );
+                    $attrs->{format}, $attrs, $topic, $web );
                 $quid++;
             }
             else {
@@ -228,7 +222,7 @@ sub _SHOWQUERY {
     try {
         $result =
           Foswiki::Plugins::FormQueryPlugin::WebDB::showQuery( $attrs->{query},
-            $attrs->{format}, $attrs, $topic, $web, $user, $installWeb );
+            $attrs->{format}, $attrs, $topic, $web );
     }
     catch Error::Simple with {
         $result = _moan( 'SHOWQUERY', $attrs, shift->{-text} );
@@ -246,7 +240,7 @@ sub _QUERYTOCALC {
     try {
         $result =
           Foswiki::Plugins::FormQueryPlugin::WebDB::toTable( $attrs->{query},
-            $attrs->{format}, $attrs, $topic, $web, $user, $installWeb );
+            $attrs->{format}, $attrs, $topic, $web );
     }
     catch Error::Simple with {
         $result = _moan( 'QUERYTOCALC', $attrs, shift->{-text} );

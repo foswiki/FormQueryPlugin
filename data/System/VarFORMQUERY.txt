@@ -1,0 +1,61 @@
+%META:TOPICPARENT{name="FormQueryPlugin"}%
+#VarFORMQUERY
+---+++ FORMQUERY
+<code>%<nop>FORMQUERY</code> is the basic !FormQueryPlugin query mechanism. A <code>%FORMQUERY</code> works either on the whole database or, if the =query= parameter is given, the results of another query.
+| *Parameter* | *Description* |
+| =name= | Required, gives the name of the query result for use in <code>%SHOWQUERY</code> or another <code>%FORMQUERY</code> |
+| =search= | Required, the search to perform (see [[#SearchOperators][Search operators]]). Default parameter; the keyword =search= may be omitted. |
+| =casesensitive= | Optional, if missing or =off= search is not casesensitive. |
+| =query= | Optional, the name of the query to refine. If missing, defaults to the whole database |
+| =extract= | Optional, the name of a field in each of the matched maps to flatten out into the returned list. |
+| =moan= | Optional, "on" or "off", if set to "off" will disable match failed message |
+
+For example,
+<pre>
+%<nop>FORMQUERY{name="AQuery" search="Owner='Main\.Fred'"}%
+%<nop>FORMQUERY{name="BQuery" query="AQuery" search="Product='Boiled Egg'"}%
+%<nop>FORMQUERY{name="CQuery" query="BQuery" search="" extract="Cooking<nop>Times"}%
+%<nop>FORMQUERY{name="DQuery" query="CQuery" search="Time < '4'"}%
+</pre>
+will search for all topics with a form field =Owner= set to =Main.Fred=, then filter that down to those topics that have =Product= set to =Boiled Egg=. Then it will extract and flatten out the embedded table =Cooking<nop>Times= in each matched topic. By "flatten out" we mean that future queries on =CQuery= must refer to the fields of the =Cooking<nop>Times= table, not the fields of the topic, i.e. =CQuery= will be an array of all the rows in the embedded table. Finally it will filter down to those rows that have the column =Time= &lt; 4 minutes.
+
+Of course there is more than one way to skin a cat. A faster way to formulate the *same* query would be to say:
+<pre>
+%<nop>FORMQUERY{name=AQuery search="Owner='Main\.Fred' AND Product='Boiled Egg'" extract=Cooking<nop>Times}%
+%<nop>FORMQUERY{name=DQuery query=AQuery search="Time < '4'"}%
+</pre>
+
+FORMQUERY is normally silent i.e. it generates no output unless there is an error, in which case an error description is inserted. This error message can be disabled using the =moan= parameter which makes =FORMQUERY= totally silent.
+
+#SearchOperators
+---++++ Search operators
+%INCLUDE{"DBCacheContrib" section="searchoperators"}%
+
+Search operators work on the fields of each map, be it a topic or an embedded table row.
+
+Fields can be simple field names or can be more complex, and may even contain embedded searches. See [[#FieldRefs][Fields]] below for more information.
+
+A search defined as some text _string_ without any search operators is interpreted as =text=~'string'=.
+
+At present there is no way to constrain a search on the contents of a contained table, such as an embedded table or forward relation. However there are usually ways around this; for example, a <code>%FORMQUERY</code> that uses =extract= to flatten all the sub-tables, and then use of the parent relation to complete the search. For example:
+<pre>
+%<nop>FORMQUERY{name=AQuery search="Product='Boiled Egg'" extract=Cooking<nop>Times}%
+%<nop>FORMQUERY{name=DQuery query=AQuery search="Time < '4' AND CookingTimes_of.Owner='Main\.Fred'"}%
+</pre>
+
+#FieldRefs
+---++++ Fields
+Field references can be as simple as the name of a field, or may be more complex expressions that can even include embedded searches. The precise interpretation of the syntax depends on the type (Map or Array) of the object being referenced.
+
+*Arrays*
+   * =N= where =N= is a number will get the Nth entry in the array e.g. =attachments.9=
+   * =X= will return the sum of the subfield =X= of each entry e.g. =TaskTable.Effort= will sum the =Effort= column in a table called =TaskTable=.
+   * =[?<i>search</i>]= will perform the given search over the entries in the array. Always returns an array result, even when there is only one result. For example: <code>attachments[?name='pitcha.gif']</code> will return an array of all the entries that have their subfield =name= set to =pitcha.gif=.
+   * =[*X]= will get a new array made from field X of each entry in this array. For example =attachments[*size]= will get an array of the sizes of each attachment.
+*Maps*
+   * =X= will get the subfield named =X=. For example, =Product= will get the formfield named =Product=.
+   * =X.Y= will get the subfield =Y= of the subfield named =X=.
+In all cases
+   * =#= means "reset to root". So =#.Y= will return the subfield =Y= of the Map at the root of the query.
+
+See also: FormQueryPlugin, [[VarSUMFIELD][%<nop>SUMFIELD%]], [[VarFORMQUERY][%<nop>FORMQUERY%]], [[VarQUERYTOCALC][%<nop>QUERYTOCALC%]], [[VarTABLEFORMAT][%<nop>TABLEFORMAT%]], [[VarSHOWCALC][%<nop>SHOWCALC%]], [[VarMATCHCOUNT][%<nop>MATCHCOUNT%]], [[VarSHOWQUERY][%<nop>SHOWQUERY%]]

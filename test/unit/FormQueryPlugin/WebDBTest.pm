@@ -285,7 +285,7 @@ sub test_calc {
     $res =
       Foswiki::Plugins::FormQueryPlugin::WebDB::toTable( 'q3',
         "|[[\$_up.web.\$_up.topic]]|\$Name|\$Date|\" sort=\"Name\"",
-        $attrs, "WebHome", "Test", "WikiGuest", "Foswiki" );
+        $attrs, "WebHome", "Test" );
     $this->assert_str_equals( "", $res );
 
 #  $res = Foswiki::Plugins::FormQueryPlugin::_handleCalcTable("SHOWCALC", "\$ROW()");
@@ -305,7 +305,7 @@ sub test_calc {
     $res =
       Foswiki::Plugins::FormQueryPlugin::WebDB::toTable( 'q3',
         "\"|[[\$_up.web.\$_up.name]]|\$Level|\$RealName|\"",
-        $attrs, "WebHome", "Test", "WikiGuest", "Foswiki" );
+        $attrs, "WebHome", "Test" );
     $this->assert_str_equals( "", $res );
 
 #  $res = Foswiki::Plugins::FormQueryPlugin::_handleCalcTable("SHOWCALC", "\$ROW()");
@@ -319,7 +319,7 @@ sub test_calc {
 
     ##  $res = Foswiki::Plugins::FormQueryPlugin::_handleShowQuery("SHOWQUERY", "query=\"q3\" format=\"|%CALC{\\\"\$dollarROW()\\\"}\$percnt()|[[\$_up.web.\$_up.name]]|\$Level|\$RealName|\"" );
 #$attrs = new Foswiki::Attrs( "format=\"|%CALC{\\\"\$dollarROW()\\\"}\$percnt()|[[\$_up.web.\$_up.name]]|\$Level|\$RealName|\"" );
-#$res = Foswiki::Plugins::FormQueryPlugin::WebDB::showQuery('q3', "\"|%CALC{\\\"\$dollarROW()\\\"}\$percnt()|[[\$_up.web.\$_up.name]]|\$Level|\$RealName|\"", $attrs, "Test", $this->{test_web}, $this->{session}->{user});
+#$res = Foswiki::Plugins::FormQueryPlugin::WebDB::showQuery('q3', "\"|%CALC{\\\"\$dollarROW()\\\"}\$percnt()|[[\$_up.web.\$_up.name]]|\$Level|\$RealName|\"", $attrs, "Test", $this->{test_web});
 #print $res;
 #print Foswiki::Func::renderText($res);
 #$this->assert_str_equals(542, length($res));

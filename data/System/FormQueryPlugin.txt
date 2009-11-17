@@ -1,4 +1,3 @@
-%META:TOPICINFO{author="WikiGuest" date="1155224748" format="1.1" version="1.2"}%
 ---+!! FormQueryPlugin
 
 The FormQueryPlugin provides a query interface to the [[Foswiki:Extensions/DBCacheContrib][Foswiki::Contrib::DBCacheContrib]] module, giving a way to present query results. It also supports 'result sets' that simplify successive refinements of searches.
@@ -29,229 +28,18 @@ Most of the rest of this documentation describes how to search this database and
 
 A query has first to be _formed_ using =FORMQUERY=, and then _shown_ using =SHOWQUERY=. You can combine these operations using =DOQUERY=. Queries are output according to a format specification in the parameters to =SHOWQUERY=. You can cache these specifications for re-use by defining them using =TABLEFORMAT=.
 
----+++ Queries
 The syntax of queries supported by FormQueryPlugin is very similar to the synatx used in =%<nop>SEARCH{type="query"=. However it is subtly different; the FormQueryPlugin predated the core support for query searches by some years.
 
----++++ <code>%<nop>FORMQUERY</code>
-<code>%<nop>FORMQUERY</code> is the basic query mechanism. A <code>%FORMQUERY</code> works either on the whole database or, if the =query= parameter is given, the results of another query.
-| *Parameter* | *Description* |
-| =name= | Required, gives the name of the query result for use in <code>%SHOWQUERY</code> or another <code>%FORMQUERY</code> |
-| =search= | Required, the search to perform (see [[#SearchOperators][Search operators]]). Default parameter; the keyword =search= may be omitted. |
-| =casesensitive= | Optional, if missing or =off= search is not casesensitive. |
-| =query= | Optional, the name of the query to refine. If missing, defaults to the whole database |
-| =extract= | Optional, the name of a field in each of the matched maps to flatten out into the returned list. |
-| =moan= | Optional, "on" or "off", if set to "off" will disable match failed message |
+%INCLUDE{VarFORMQUERY}%
+%INCLUDE{VarTABLEFORMAT}%
+%INCLUDE{VarSHOWQUERY}%
+%INCLUDE{VarDOQUERY}%
+%INCLUDE{VarQUERYTOCALC}%
+%INCLUDE{VarSHOWCALC}%
+%INCLUDE{VarSUMFIELD}%
+%INCLUDE{VarMATCHCOUNT}%
 
-For example,
-<pre>
-%<nop>FORMQUERY{name="AQuery" search="Owner='Main\.Fred'"}%
-%<nop>FORMQUERY{name="BQuery" query="AQuery" search="Product='Boiled Egg'"}%
-%<nop>FORMQUERY{name="CQuery" query="BQuery" search="" extract="Cooking<nop>Times"}%
-%<nop>FORMQUERY{name="DQuery" query="CQuery" search="Time < '4'"}%
-</pre>
-will search for all topics with a form field =Owner= set to =Main.Fred=, then filter that down to those topics that have =Product= set to =Boiled Egg=. Then it will extract and flatten out the embedded table =Cooking<nop>Times= in each matched topic. By "flatten out" we mean that future queries on =CQuery= must refer to the fields of the =Cooking<nop>Times= table, not the fields of the topic, i.e. =CQuery= will be an array of all the rows in the embedded table. Finally it will filter down to those rows that have the column =Time= &lt; 4 minutes.
-
-Of course there is more than one way to skin a cat. A faster way to formulate the *same* query would be to say:
-<pre>
-%<nop>FORMQUERY{name=AQuery search="Owner='Main\.Fred' AND Product='Boiled Egg'" extract=Cooking<nop>Times}%
-%<nop>FORMQUERY{name=DQuery query=AQuery search="Time < '4'"}%
-</pre>
-
-FORMQUERY is normally silent i.e. it generates no output unless there is an error, in which case an error description is inserted. This error message can be disabled using the =moan= parameter which makes =FORMQUERY= totally silent.
-
-#SearchOperators
----+++++ Search operators
-%INCLUDE{"DBCacheContrib" section="searchoperators"}%
-
-Search operators work on the fields of each map, be it a topic or an embedded table row.
-
-Fields can be simple field names or can be more complex, and may even contain embedded searches. See [[#FieldRefs][Fields]] below for more information.
-
-A search defined as some text _string_ without any search operators is interpreted as =text=~'string'=.
-
-At present there is no way to constrain a search on the contents of a contained table, such as an embedded table or forward relation. However there are usually ways around this; for example, a <code>%FORMQUERY</code> that uses =extract= to flatten all the sub-tables, and then use of the parent relation to complete the search. For example:
-<pre>
-%<nop>FORMQUERY{name=AQuery search="Product='Boiled Egg'" extract=Cooking<nop>Times}%
-%<nop>FORMQUERY{name=DQuery query=AQuery search="Time < '4' AND CookingTimes_of.Owner='Main\.Fred'"}%
-</pre>
-
-#FieldRefs
----+++++ Fields
-Field references can be as simple as the name of a field, or may be more complex expressions that can even include embedded searches. The precise interpretation of the syntax depends on the type (Map or Array) of the object being referenced.
-
-*Arrays*
-   * =N= where =N= is a number will get the Nth entry in the array e.g. =attachments.9=
-   * =X= will return the sum of the subfield =X= of each entry e.g. =TaskTable.Effort= will sum the =Effort= column in a table called =TaskTable=.
-   * =[?<i>search</i>]= will perform the given search over the entries in the array. Always returns an array result, even when there is only one result. For example: <code>attachments[?name='pitcha.gif']</code> will return an array of all the entries that have their subfield =name= set to =pitcha.gif=.
-   * =[*X]= will get a new array made from field X of each entry in this array. For example =attachments[*size]= will get an array of the sizes of each attachment.
-*Maps*
-   * =X= will get the subfield named =X=. For example, =Product= will get the formfield named =Product=.
-   * =X.Y= will get the subfield =Y= of the subfield named =X=.
-In all cases
-   * =#= means "reset to root". So =#.Y= will return the subfield =Y= of the Map at the root of the query.
-
----+++ Reports
----++++ <code>%TABLEFORMAT</code>
-<code>%TABLEFORMAT</code> provides a template for the display of values extracted from a query (like the old Fortran 'format' statement).
-| *Parameter* | *Description* |
-| =name= | Required, gives the name of the format for use in <code>%SHOWQUERY</code> or another <code>%FORMQUERY</code> |
-| =format= | Required, gives the format of the body rows (or the format to subclass) |
-| =header= | Optional, gives the format of the header row |
-| =separator= | Optional, separate rows with this (default newline) |
-| =footer= | Optional, gives the string to use to terminate the table |
-| =sort= | Optional, defines the [[#SortOrder][sort order]] |
-| =help= | Optional, if present then a helpful message will be output for undefined fields. So if you see a table entry that is blank and you don;t think it should be, add the =help= parameter and it should give some guidance. |
-| =moan= | Optional, "on" or "off", if set to "off" disables error output |
-
-The =header=, =footer= and =format= parameters are very similar in application to the parameters used in the standard <code>%SEARCH</code> Foswiki command. For the uninitiated, the header is used to define the first row of the results table:
-
-<pre>
-header="| <nop>*Topic*<nop> | <nop>*Summary*<nop> |"
-header="&lt;table>&lt;tr>&lt;th>Topic&lt;/th>&lt;th>Summary&lt;/th>&lt;/tr> |"
-footer="&lt;/table>"
-</pre>
-
-The =format= parameter is overloaded so it can also be used to refer to a table format previously defined using <code>%TABLEFORMAT</code>. This allows you to derive new formats (e.g. with different [[#SortOrder][sort orders]]) For example,
-<pre>
-%<nop>TABLEFORMAT{ name=TBLFMT format="|$topic|" sort="Owner,Priority"}%
-%<nop>TABLEFORMAT{ name=SUBFMT format=TBLFMT sort="Priority,Owner" }%
-</pre>
-Any of the =header=, =footer= or =sort= parameters in the referenced table format can be overridden by giving new values in the <code>%SHOWQUERY</code>.
-
-The footer is usually only used for tables generated directly in HTML, in which case it is usually set to =footer="&lt;/table>"=
-
-<pre>
-footer="&lt;/table>"
-</pre>
-
-The format is used to define the rows in the body of the table:
-
-=format="| $topic | $Summary |"=
-
-Any fields in the form in the topic can be output by putting a $ sign before the name of the field. The two special fields =$topic= and =$form= are available for outputting the name of the topic and the type of the form. You can also refer to fields in related topics using the syntax <code>$field.field</code> where $field is the name of the relation and =field= is a field in the related topic; for example, <code>format="|$Child_of.topic|"</code>.
-
-The following special variables can be used in the format string:
-
-|*Name:*|*Expands To:*|
-|=$web= |Name of the web |
-|=$topic= |Topic name |
-| =$topic(20)= | Topic name, "<tt>- </tt>" hyphenated each 20 characters |
-| =$topic(30, -&lt;br /&gt;)= | Topic name, hyphenated each 30 characters with separator "<tt>-&lt;br /&gt;</tt>" |
-| =$topic(40, ...)= | Topic name, shortended to 40 characters with "<tt>...</tt>" indication |
-| =$parent= | Name of parent topic; empty if not set |
-| =$parent(20)= | Name of parent topic, same hyphenation/shortening like =$topic()= |
-| =$text= | Formatted topic text. |
-| =$locked= | LOCKED flag (if any) |
-| =$date= | Time stamp of last topic update, e.g. =%GMTIME{"$day $mon $year - $hour:$min"}%= |
-| =$isodate= | Time stamp of last topic update, e.g. =%GMTIME{"$year-$mo-$dayT$hour:$minZ"}%= |
-| =$rev= | Number of last topic revision, e.g. =1.4= |
-| =$username= | Login name of last topic update, e.g. =jsmith= |
-| =$wikiname= | Wiki user name of last topic update, e.g. =<nop>JohnSmith= |
-| =$wikiusername= | Wiki user name of last topic update, like =%MAINWEB%.<nop>JohnSmith= |
-| =$createdate= | Time stamp of topic revision 1.1 |
-| =$createusername= | Login name of topic revision 1.1, e.g. =jsmith= |
-| =$createwikiname= | Wiki user name of topic revision 1.1, e.g. =<nop>JohnSmith= |
-| =$createwikiusername= | Wiki user name of topic revision 1.1, e.g. =%MAINWEB%.<nop>JohnSmith= |
-| =$summary= | Topic summary, with 162 characters |
-| =$summary(50)= | Topic summary, with 50 characters |
-| =$summary(showvarnames)= | Topic summary, with =%<nop>ALLTWIKI{...}%= variables shown as =ALLTWIKI{...}= |
-| =$summary(noheader)= | Topic summary, with leading =---+ headers= removed%BR% __Note:__ The tokens can be combined into a comma separated list like =$summary(100, showvarnames, noheader)= |
-| =$formname= | The name of the form attached to the topic; empty if none |
-| =$formfield(name)= | The field value of a form field; for example, =$formfield(<nop>TopicClassification)= would get expanded to =PublicFAQ=. This applies only to topics that have a [[DataForms][DataForm]]. An alternative to using the name of the field directly. |
-| =$formfield(name, 10)= | Form field value, "<tt>- </tt>" hyphenated each 10 characters |
-| =$formfield(name, 20, -&lt;br /&gt;)= | Form field value, hyphenated each 20 characters with separator "<tt>-&lt;br /&gt;</tt>" |
-| =$formfield(name, 30, ...)= | Form field value, shortended to 30 characters with "<tt>...</tt>" indication |
-| =$pattern(reg-exp)= | A regular expression pattern to extract some text from the topic text (does not search meta data; use fields instead). %BB% Specify a RegularExpression that covers the whole text (topic or line), which typically starts with =.*=, and must end in =.*= %BB% Put text you want to keep in parenthesis, like =$pattern(.*?(from here.*?to here).*)= %BB% Example: =$pattern(.*?\*.*?Email\:\s*([^\n\r]+).*)= extracts the email address from a bullet of format =* Email: ...= %BB% This example has non-greedy =.*?= patterns to scan for the first occurance of the Email bullet; use greedy =.*= patterns to scan for the last occurance %BB% Limitation: Do not use =.*)= inside the pattern, e.g. =$pattern(.*foo(.*)bar.*)= does not work, but =$pattern(.*foo(.*?)bar.*)= does %BB% Note: Make sure that the integrity of a web page is not compromised; for example, if you include an HTML table make sure to include everything including the table end tag |
-| =$formatTime(&lt;formfield-accessor> [,&lt;format>])= | format the datefield pointed to by the &lt;formfield-accessor> using the given &lt;format>; the format can be in any form supported by =Foswiki::Func::formatTime()= (see [[%SYSTEMWEB%.Macros#DISPLAYTIME_format_formatted_dis][Macros]]). |
-| =$n= or =$n()= | New line |
-| =$nop= or =$nop()= | Is a "no operation". This variable gets removed; useful for nested search |
-|=$quot= |Double quote (="=). Alternatively, write =\"= to escape it. |
-|=$percnt= |Percent sign (=%=) |
-|=$dollar= |Dollar sign (=$=) |
-
-#SummingFields
-It is also possible to expand the contents of tables embedded in the topic, in two ways:
-   * using the syntax <code>$field[format=FORMAT]</code> where =$field= is the table type, which is named the same as the table topic, and =FORMAT= is the name of a format previously defined using <code>%TABLEFORMAT</code> and suitable for expanding the sub-table.
-   * using the syntax <code>$field.subfield</code> where =subfield= is a numeric field in the contents of the embedded table (i.e. it contains a number). In this case the result will be the sum of all =subfield= values over all the rows in the table.
-
-#SortOrder
-=sort= is used to define the sort order, and is a list of field names (without $'s) separated by commas. You can reverse the sort order for a column by prepending '-' to the field name. For example,
-
-=sort="Owner,-Priority"=
-
-The default sort method is string comparison. If the field data is numeric, then you can put a '#' in front of the field name to force the sort to be numeric. For example,
-
-=sort="Owner,#Priority"=
-
-or
-
-=sort="Owner,-#Priority"=
-
-<code>%TABLEFORMAT</code> is silent i.e. it produces no output on the page unless there is an error, in which case a descriptive error message is output. This message can be disabled using the =moan= parameter.
-
----++++ <code>%SHOWQUERY</code>
-Used to show the results of a query, <code>%SHOWQUERY</code> accepts all the same parameters as <code>%TABLEFORMAT</code> (except =name=), and also the following parameters:
-| *Parameter* | *Description* |
-| =query= | Required, gives the name of the query to show |
-| =start= | Optional, first row to display |
-| =limit= | Optional, number of rows to display, or =all= |
-For example,
-<pre>
-%<nop>SHOWQUERY{ query=AFORMQUERY format=ATBLFMT }%
-</pre>
-*Note:* If you render your results in Foswiki table format and limit the rows displayed using =limit= (e.g. first 10 from 99 rows), and also use %SYSTEMWEB%.TablePlugin to allow sorting on the headers, then only the 10 displayed rows will be sorted by TablePlugin (and not the full 99 rows in the table).
-
----++++ <code>%DOQUERY</code>
-Combines a query and showing the results of that query, <code>%DOQUERY</code> accepts all the same parameters as <code>%FORMQUERY</code> and <code>%SHOWQUERY</code> (except =name= and =query=).
-
----+++ Interface to !SpreadSheetPlugin
----++++ <code>%QUERYTOCALC</code>
-Used to transform the results of a query into a format which %SYSTEMWEB%.SpreadSheetPlugin can operate on. %QUERYTOCALC accepts all the same parameters as %TABLEFORMAT (except name), and also the following parameters: 
-| *Parameter* | *Description* |
-| =query= | Required, gives the name of the query to show |
-| =start= | Optional, first row to display |
-| =limit= | Optional, number of rows to display, or =all= |
-For example,
-<pre>
-%<nop>QUERYTOCALC{ query=AFORMQUERY format=ATBLFMT }%
-</pre>
-The query must be formatted as a table. This variable produces no output, but must precede any calculation on the resultant query.
-
----++++ <code>%SHOWCALC</code>
-Operates on the result of a query represented as a table, using a previous %QUERYTOCALC. Accepts a single, unnamed parameter:
-| *Parameter* | *Description* |
-| &nbsp; | Required; the calculation to perform |
-The parameter is text as required by the $CALC statement (see %SYSTEMWEB%.SpreadSheetPlugins); all operations supported by %CALC are supported by %SHOWCALC. This command behaves identical to %CALC when used following a table; it operates on the implicit table constructed by a preceding %QUERYTOCALC statement. Arbitrary many %SHOWCALC can be performed; all apply to the preceeding implicit table.
-
-Example:
-<pre>
-%<nop>SHOWCALC{"$ROW()"}%
-</pre>
-returns the number of matches of a query that had been formatted as an implicit table.
-
----+++ Querying results of a search
-
----++++ <code>%SUMFIELD</code>
-Used to calculate the sum of a numeric field across all the matches in a query result.
-| *Parameter* | *Description* |
-| =query= | Required, name of the query to sum over |
-| =field= | Required, name of the field to sum |
-For example, let's say we have a form type called "VitalStatistics" that has a field "Age" in it. We can sum all the ages in all occurences of the form using:
-<pre>
-%<nop>FORMQUERY{name=vs search="form='VitalStatistics'"}%
-Sum of ages = %<nop>SUMFIELD{query=vs field="Age"}%
-</pre>
-The result is a single number representing the sum of all the fields.
-
-Note that values embedded in tables can be summed using the shorthand described [[#SummingFields][above]].
-
----++++ <code>%MATCHCOUNT</code>
-Used to determine the total number of results a query returned.
-| *Parameter* | *Description* |
-| =query= | Required, name of the query to sum over |
-The result is a single number representing the number of results the query returned.
-
----+++ Tutorial
+---++ Tutorial
 See Foswiki::Plugins/FormQueryPluginTutorial for a tutorial describing how to use the plugin in real-world applications.
 
 ---++ Formatted query examples
@@ -419,8 +207,8 @@ The default value of =FORMQUERYPLUGIN_RELATIONS= is none.
 ---+++ Tables
 Tables to be read into the database must use the Edit<nop>TablePlugin 'include= _topic_ ' feature (or the <nop>EditTablerow 'template= _topic_ ' feature), which define the format of the tables in another topic. Tables to be read are defined by setting the =FORMQUERYPLUGIN_TABLES= variable in the WebPreferences topic of the web. This is a list of the names of the topics that Edit<nop>TablePlugin or <nop>EditTablerowPlugin use to find the table formats. Tables are read in as arrays of maps, with each map keyed on a field name generated by stripping all non-alphabetic characters from the column header. Note that the column header where the table is defined is used, not the column header in the Edit<nop>Table include= topic. If the =FORMQUERYPLUGIN_TABLES= variable is set to =All= (case-insensitive), then any valid table is added to the database.
 
-The defaut is to load all tables:
-   * Set TABLES = all
+The default is to load all tables:
+   * Set FORMQUERYPLUGIN_TABLES = all
 
 Two special map entries are added to each table row, =topic= and the equivalent of the reverse relation described above, represented by =_up=. So if you load a table type "CookingTimes", each row will have =topic= set to the name of the topic it was loaded from and =_up= set to the map of that topic. This allows you to refer to the fields of the topic that contains a table even after the table has been extracted.
 
@@ -451,21 +239,25 @@ In this case, =$TableDefinition.0.Name= is =Cat=, =$TableDefinition.1.Name= is =
 
 ---++ Plugin Installation Instructions
 %$INSTALL_INSTRUCTIONS%
+   * Note: preferences are no longer read from this topic. They must be set
+     in %USERSWEB%.SitePreferences, WebPreferences in individual webs, or in
+     individual topics
    * The variable %<nop>FORMQUERYPLUGIN_ENABLE% *must* be set either globally or in the web where you want to use it. If the plugin is enabled globally (on all webs), this may have an unwelcome performance impact, as the plugin may create a cache of topics in a web where it is not intended to be used. To enable the plugin for selected webs only, put the following line into the !WebPreferences topic of the web you want to enable it on:
 <pre>
    * Set FORMQUERYPLUGIN_ENABLE = 1
 </pre>
-   * You can set a global default for the =moan= parameter by setting the =FORMQUERYPLUGIN_MOAN variable in %USERSWEB%.SitePreferences, WebPreferences in individual webs, or in individual topics.
-   * FormQueryPlugin must appear in the Plugins evaluation order *before* Foswiki:Extensions/SpreadSheetPlugin. You can ensure this by putting !FormQueryPlugin immediately after Default<nop>Plugin in the {PluginsOrder} list in =configure=.
-   * Note: If you are using it, Foswiki:Extensions/MacrosPlugin must appear in the Plugins evaluation order *before* FormQueryPlugin.
+   * You can set a default for the =moan= parameter by setting the =FORMQUERYPLUGIN_MOAN preference.
+   * FormQueryPlugin must appear in the Plugins evaluation order *before* !SpreadSheetPlugin. You can ensure this by putting !FormQueryPlugin first in the {PluginsOrder} list in =configure=.
+   * Note: If you are using it, !MacrosPlugin must appear in the Plugins evaluation order *before* !FormQueryPlugin.
 
 ---
 ---++ Plugin Info
 
-|  Author: | Foswiki:Main/CrawfordCurrie, Foswiki:Main/ThomasWeigert |
+|  Author: | Foswiki:Main/CrawfordCurrie, with contributions from Foswiki:Main/ThomasWeigert and others |
 |  Version: | %$VERSION% |
 |  Release: | %$RELEASE% |
 |  Change History: | |
+|  17 Nov 2009 | Foswikitask:Item4199: broke up doc topics |
 |  7 Apr 2009 | Foswikitask:Item8053: fixed QUERYTOCALC, which was always coming up a row short Foswikitask:Item3537: added =$formatTime= as proposed by Stephane Lenclud. |
 |  28 Jan 2009 | Foswikitask:Item452: ported to Foswiki, updated for changes made for Berkeley DB support |
 |  21 May 2007 | TWikibug:Item3969 - 8bit email fix (Foswiki:Main.WillNorris) |
@@ -495,9 +287,7 @@ In this case, =$TableDefinition.0.Name= is =Cat=, =$TableDefinition.1.Name= is =
 | 02 Apr 2004  | Foswiki:Main/SimonHardyFrancis bugfixes incorporated. Foswiki:Main/TimSlidel patches incoporated for mod_perl, autocreate, and collapsing same-type tables in a single topic |
 | 05 Feb 2004  | Bugfix version |
 | 11 Jul 2003  | Initial version |
-|  Foswiki Dependencies: | Foswiki:Extensions.SpreadSheetPlugin |
-|  Dependencies: | <table border=1><tr><th align="left">Name</th><th align="left">Version</th><th align="left">Description</th></tr><tr><td align="left">Foswiki::Contrib::DBCacheContrib</td><td align="left">&gt;=1.001</td><td align="left">Required. Download and install from the Foswiki:Extensions/DBCacheContrib code library.</td></tr></tr><tr><td align="left">Time::ParseDate</td><td align="left">Required. Available from [[http://cpan.uwinnipeg.ca/dist/Time-modules][CPAN]].</td></tr><tr><td align="left">Storable</td><td align="left">&gt;=2.07</td><td align="left">2.13 recommended; accelerates cache handling. Available from [[http://cpan.uwinnipeg.ca/dist/Storable][CPAN]]</td></tr><tr><td align="left">Foswiki::Plugins::MacrosPlugin</td><td align="left">&gt;=1.000</td><td align="left">Recommended; used for parameterised includes. Download from Foswiki:Extensions/MacrosPlugin repository.</td></tr></table> |
-|  Perl Version: | 5.0 |
+|  Dependencies: | %$DEPENDENCIES% |
 |  Home: | http://foswiki.org/Extensions/%TOPIC% |
 |  Support: | http://foswiki.org/Support/%TOPIC% |
 
@@ -506,17 +296,3 @@ In this case, =$TableDefinition.0.Name= is =Cat=, =$TableDefinition.1.Name= is =
 This code is based on an original development of Motorola Inc. and is protected by the following copyrights:
    * Copyright &copy; 2002-2003, 2005 Motorola. All Rights Reserved.
    * Copyright &copy; 2004. Crawford Currie http://www.c-dot.co.uk
-
----+++ License
-
-As required for the publication of all extensions to Foswiki, this
-software is published under the terms of the GNU General Public
-License.
-
-This program is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-General Public License for more details, published at
-http://www.gnu.org/copyleft/gpl.html
-
-<!-- Do _not_ attempt to edit this topic; it is auto-generated. Please add comments/questions/remarks to the Dev topic instead. -->

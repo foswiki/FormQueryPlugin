@@ -1,0 +1,15 @@
+%META:TOPICPARENT{name="FormQueryPlugin"}%
+#VarSHOWCALC
+---+++ SHOWCALC
+Operates on the result of a !FormQueryPlugin query represented as a table, using a previous %QUERYTOCALC. Accepts a single, unnamed parameter:
+| *Parameter* | *Description* |
+| &nbsp; | Required; the calculation to perform |
+The parameter is text as required by the $CALC statement (see %SYSTEMWEB%.SpreadSheetPlugins); all operations supported by %CALC are supported by %SHOWCALC. This command behaves identical to %CALC when used following a table; it operates on the implicit table constructed by a preceding %QUERYTOCALC statement. Arbitrary many %SHOWCALC can be performed; all apply to the preceeding implicit table.
+
+Example:
+<pre>
+%<nop>SHOWCALC{"$ROW()"}%
+</pre>
+returns the number of matches of a query that had been formatted as an implicit table.
+
+See also: FormQueryPlugin, [[VarSUMFIELD][%<nop>SUMFIELD%]], [[VarFORMQUERY][%<nop>FORMQUERY%]], [[VarQUERYTOCALC][%<nop>QUERYTOCALC%]], [[VarTABLEFORMAT][%<nop>TABLEFORMAT%]], [[VarSHOWCALC][%<nop>SHOWCALC%]], [[VarMATCHCOUNT][%<nop>MATCHCOUNT%]], [[VarSHOWQUERY][%<nop>SHOWQUERY%]]

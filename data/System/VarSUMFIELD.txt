@@ -1,0 +1,17 @@
+%META:TOPICPARENT{name="FormQueryPlugin"}%
+#VarSUMFIELD
+---+++ SUMFIELD
+Used to calculate the sum of a numeric field across all the matches in a !FormQueryPlugin query result.
+| *Parameter* | *Description* |
+| =query= | Required, name of the query to sum over |
+| =field= | Required, name of the field to sum |
+For example, let's say we have a form type called "VitalStatistics" that has a field "Age" in it. We can sum all the ages in all occurences of the form using:
+<pre>
+%<nop>FORMQUERY{name=vs search="form='VitalStatistics'"}%
+Sum of ages = %<nop>SUMFIELD{query=vs field="Age"}%
+</pre>
+The result is a single number representing the sum of all the fields.
+
+Note that values embedded in tables can be summed using the shorthand described [[#SummingFields][above]].
+
+See also: FormQueryPlugin, [[VarSUMFIELD][%<nop>SUMFIELD%]], [[VarFORMQUERY][%<nop>FORMQUERY%]], [[VarQUERYTOCALC][%<nop>QUERYTOCALC%]], [[VarTABLEFORMAT][%<nop>TABLEFORMAT%]], [[VarSHOWCALC][%<nop>SHOWCALC%]], [[VarMATCHCOUNT][%<nop>MATCHCOUNT%]], [[VarSHOWQUERY][%<nop>SHOWQUERY%]]
