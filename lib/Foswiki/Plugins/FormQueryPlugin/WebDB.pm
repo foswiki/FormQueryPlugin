@@ -2,7 +2,8 @@
 # Copyright (C) Motorola 2003 - All rights reserved
 #
 package  Foswiki::Plugins::FormQueryPlugin::WebDB;
-use base 'Foswiki::Contrib::DBCacheContrib';
+use Foswiki::Contrib::DBCacheContrib;
+our @ISA = qw( Foswiki::Contrib::DBCacheContrib );
 
 use strict;
 use Assert;
