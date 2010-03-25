@@ -1,5 +1,6 @@
 package TableDefTest;
-use base qw(Unit::TestCase);
+use Unit::TestCase;
+our @ISA = qw( Unit::TestCase );
 use strict;
 use Foswiki::Plugins::FormQueryPlugin::TableDef;
 

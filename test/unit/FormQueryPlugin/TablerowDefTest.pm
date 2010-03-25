@@ -1,6 +1,7 @@
 package TablerowDefTest;
 
-use base qw(Unit::TestCase);
+use Unit::TestCase;
+our @ISA = qw( Unit::TestCase );
 use Foswiki::Plugins::FormQueryPlugin::TablerowDef;
 
 sub test_parse1 {
