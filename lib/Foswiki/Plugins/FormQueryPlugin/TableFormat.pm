@@ -279,7 +279,7 @@ s/\$createwikiusername/Foswiki::Search::_getRev1Info( $sub->get("web"), $topic, 
 
             ## TW Below is almost like Foswiki::expandStandardEscapes
             ## were it not for the $TranslationToken
-            $row =~ s/\$n\(\)/\n/gos;          # expand "$n()" to new line
+            $row =~ s/\$n\(\)/\n/gos;    # expand "$n()" to new line
             $row =~ s/\$n([^$mixedAlpha]|$)/\n$1/gos;  # expand "$n" to new line
             $row =~
               s/\$nop(\(\))?//gos;    # remove filler, useful for nested search
