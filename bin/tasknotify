@@ -105,6 +105,7 @@ $message";
   my $mail = "From: ${webName}Management
 To: $email
 Subject: Outstanding tasks owned by $name
+Auto-Submitted: auto-generated
 MIME-Version: 1.0
 Content-Type: multipart/alternative; boundary=\"$sep\"
 
